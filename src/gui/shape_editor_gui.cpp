@@ -39,9 +39,9 @@ void ShapeEditorGUI::renderControlsPanel()
     ImGui::Text("Shape Creation");
     ImGui::Separator();
 
-    ImGui::InputText("Name", newShapeNameBuffer, sizeof(newShapeNameBuffer));
+    ImGui::InputText("Name###New", newShapeNameBuffer, sizeof(newShapeNameBuffer));
     // Edit color as RGB
-    ImGui::ColorEdit3("Color", (float*)&newShapeColor);
+    ImGui::ColorEdit3("Color###New", newShapeColor);
 
     // Removed "New Shape Position" input as click-to-add is primary
     ImGui::Separator();
@@ -51,7 +51,7 @@ void ShapeEditorGUI::renderControlsPanel()
     ImGui::SliderFloat("Radius", &newCircleRadius, 10.0f, 150.0f, "%.1f");
     // These buttons now add shapes at a default position if not clicked on canvas
     if (ImGui::Button("Add Circle", ImVec2(120, 0))) {
-        addShape<Circle>(ImVec2(100,100), newCircleRadius, newShapeColor, newShapeNameBuffer); // Default pos
+        addShape<Circle>(ImVec2(100,100), newCircleRadius); // Default pos
     }
 
     ImGui::Separator();
@@ -60,7 +60,7 @@ void ShapeEditorGUI::renderControlsPanel()
     ImGui::Text("Rectangle Properties:");
     ImGui::SliderFloat2("Size", (float*)&newRectSize, 10.0f, 200.0f, "%.1f");
     if (ImGui::Button("Add Rectangle", ImVec2(120, 0))) {
-        addShape<Rectangle>(ImVec2(150,150), newRectSize, newShapeColor, newShapeNameBuffer); // Default pos
+        addShape<Rectangle>(ImVec2(150,150), newRectSize); // Default pos
     }
 
     ImGui::Separator();
@@ -184,7 +184,13 @@ void ShapeEditorGUI::renderCanvasPanel() {
 
 template<typename T, typename... Args>
 void ShapeEditorGUI::addShape(Args&&... args) {
-    shapes.push_back(std::make_unique<T>(std::forward<Args>(args)...));
+    ImU32 color = IM_COL32(
+        (int)(newShapeColor[0] * 255), // R
+        (int)(newShapeColor[0] * 255), // G
+        (int)(newShapeColor[0] * 255), // B
+        255
+    );
+    shapes.push_back(std::make_unique<T>(std::forward<Args>(args)... , color, newShapeNameBuffer));
     // Reset name buffer after adding
     newShapeNameBuffer[0] = '\0';
     // Select the newly added shape

@@ -11,7 +11,7 @@ private:
     // For new shape creation (these are now defaults for the "Add" buttons, not click-to-add)
     float newCircleRadius = 50.0f;
     ImVec2 newRectSize = ImVec2(80, 60);
-    ImU32 newShapeColor = IM_COL32(255, 0, 0, 255); // Red by default
+    float newShapeColor[3] = {1.0f, 0.0f, 0.0f}; // RGB as floats (red by default)
     char newShapeNameBuffer[128] = ""; // For C-style string input
 
 public:
