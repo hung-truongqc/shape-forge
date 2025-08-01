@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# OpenStreetMap Coordinate Renderer - Dependency Download Script
+# Shape-Force - Dependency Download Script
 # This script downloads and extracts all required third-party libraries
 
 set -e  # Exit on any error
