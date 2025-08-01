@@ -186,8 +186,8 @@ template<typename T, typename... Args>
 void ShapeEditorGUI::addShape(Args&&... args) {
     ImU32 color = IM_COL32(
         (int)(newShapeColor[0] * 255), // R
-        (int)(newShapeColor[0] * 255), // G
-        (int)(newShapeColor[0] * 255), // B
+        (int)(newShapeColor[1] * 255), // G
+        (int)(newShapeColor[2] * 255), // B
         255
     );
     shapes.push_back(std::make_unique<T>(std::forward<Args>(args)... , color, newShapeNameBuffer));
