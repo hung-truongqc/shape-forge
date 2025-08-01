@@ -41,7 +41,7 @@ void ShapeEditorGUI::renderControlsPanel()
 
     ImGui::InputText("Name###New", newShapeNameBuffer, sizeof(newShapeNameBuffer));
     // Edit color as RGB
-    ImGui::ColorEdit3("Color###New", newShapeColor);
+    ImGui::ColorEdit3("Color###New", newShapeColor.data()); // Convert to float* raw pointer for IMGUI
 
     // Removed "New Shape Position" input as click-to-add is primary
     ImGui::Separator();
@@ -78,7 +78,7 @@ void ShapeEditorGUI::renderControlsPanel()
         // Using a char buffer and sprintf for string formatting
         char label_buffer[256]; // Sufficiently large buffer
         const char* shape_type = (dynamic_cast<Circle*>(shapes[i].get()) ? "Circle" : "Rect");
-        sprintf(label_buffer, "%s (%s @ %.0f,%.0f)",
+        snprintf(label_buffer, sizeof(label_buffer),"%s (%s @ %.0f,%.0f)",
                 shapes[i]->name.c_str(), shape_type,
                 shapes[i]->position.x, shapes[i]->position.y);
 
@@ -93,7 +93,7 @@ void ShapeEditorGUI::renderControlsPanel()
         if (isCurrentSelected) {
             ImGui::Indent();
             ImGui::Text("Properties:");
-            ImGui::ColorEdit3("Color##Edit", (float*)&shapes[i]->color);
+            ImGui::ColorEdit3("Color##Edit", shapes[i]->color.data()); // Convert to float* raw pointer for IMGUI
             ImGui::InputFloat2("Position##Edit", (float*)&shapes[i]->position);
 
             // Specific properties for Circle
@@ -184,13 +184,7 @@ void ShapeEditorGUI::renderCanvasPanel() {
 
 template<typename T, typename... Args>
 void ShapeEditorGUI::addShape(Args&&... args) {
-    ImU32 color = IM_COL32(
-        (int)(newShapeColor[0] * 255), // R
-        (int)(newShapeColor[1] * 255), // G
-        (int)(newShapeColor[2] * 255), // B
-        255
-    );
-    shapes.push_back(std::make_unique<T>(std::forward<Args>(args)... , color, newShapeNameBuffer));
+    shapes.push_back(std::make_unique<T>(std::forward<Args>(args)... , newShapeColor, newShapeNameBuffer));
     // Reset name buffer after adding
     newShapeNameBuffer[0] = '\0';
     // Select the newly added shape

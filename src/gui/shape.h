@@ -34,10 +34,11 @@ public:
 
     // Common properties for all shapes
     ImVec2 position; // Position is now relative to the canvas's top-left corner
-    ImU32 color;
+    std::array<float, 3> color;
     bool isSelected = false;
     std::string name;
 
-    Shape(ImVec2 pos, ImU32 col, const std::string& n = "Shape")
-        : position(pos), color(col), name(n) {}
+    Shape(ImVec2 pos, const std::array<float, 3>& col, const std::string& n = "Shape")
+        : position(pos), color(col), name(n) {
+        }
 };

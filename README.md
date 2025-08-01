@@ -48,7 +48,7 @@ ImGui  → Uses loaded OpenGL functions to render the UI
 To download and extract dependencies, execute the following command:
 
 ```bash
-docker run --rm -it -v "$(pwd)":/home/dev/app map_dev_env:latest bash -c "rm -r thirdparties; ./download_and_extract_dependancy.sh"
+docker run --rm -it -v "$(pwd)":/home/dev/app map_dev_env:latest bash -c "rm -r thirdparties; ./download_and_setup_dependencies.sh"
 ```
 
 ### Build Commands for Source Code

@@ -151,7 +151,7 @@ setup_gl3w() {
 
 # Main execution
 main() {
-    echo "OpenStreetMap Coordinate Renderer - Dependency Setup"
+    echo "Shape-Force - Dependency Setup"
     echo "===================================================="
     echo
     
@@ -172,9 +172,6 @@ main() {
     echo "  mkdir -p build && cd build"
     echo "  cmake .."
     echo "  cmake --build ."
-    echo
-    print_status "To build the mock version (no network dependencies):"
-    echo "  cmake -DBUILD_MOCK=ON .."
     echo
 }
 

@@ -11,14 +11,16 @@ private:
     // For new shape creation (these are now defaults for the "Add" buttons, not click-to-add)
     float newCircleRadius = 50.0f;
     ImVec2 newRectSize = ImVec2(80, 60);
-    float newShapeColor[3] = {1.0f, 0.0f, 0.0f}; // RGB as floats (red by default)
+    std::array<float, 3> newShapeColor = {1.0f, 1.0f, 1.0f}; // RGB as floats (white by default)
     char newShapeNameBuffer[128] = ""; // For C-style string input
 
 public:
     ShapeEditorGUI() {
         // Add some initial shapes (positions are canvas-relative now) to test shape code
-        shapes.push_back(std::make_unique<Circle>(ImVec2(100, 100), 50.0f, IM_COL32(0, 255, 0, 255), "Green Circle"));
-        shapes.push_back(std::make_unique<Rectangle>(ImVec2(200, 50), ImVec2(100, 70), IM_COL32(0, 0, 255, 255), "Blue Rect"));
+        const std::array<float, 3> green = {0.0f, 1.0f, 0.0f};
+        shapes.push_back(std::make_unique<Circle>(ImVec2(100, 100), 50.0f, green, "Green Circle"));
+        const std::array<float, 3> blue = {0.0f, 0.0f, 1.0f};
+        shapes.push_back(std::make_unique<Rectangle>(ImVec2(200, 50), ImVec2(100, 70),blue, "Blue Rect"));
     }
     void render();
 
