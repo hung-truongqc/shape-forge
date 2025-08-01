@@ -13,6 +13,7 @@ private:
     ImVec2 newRectSize = ImVec2(80, 60);
     std::array<float, 3> newShapeColor = {1.0f, 1.0f, 1.0f}; // RGB as floats (white by default)
     char newShapeNameBuffer[128] = ""; // For C-style string input
+    bool showMenuBar = false;
 
 public:
     ShapeEditorGUI() {
@@ -34,4 +35,8 @@ private:
     // Generic function to add a shape
     template<typename T, typename... Args>
     void addShape(Args&&... args);
+
+    // TBD - For features to export and import a JSON contains all Shapes of the current canvas
+    void importJson();
+    void exportJson();
 };

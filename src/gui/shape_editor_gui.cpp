@@ -1,10 +1,37 @@
 #include "shape_editor_gui.h"
 void ShapeEditorGUI::render()
 {
-    // --- Make the ImGui window fill the entire GLFW window ---
+    // --- Add the Menu Bar at the top of the entire window ---
     ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(io.DisplaySize);
+    // Check for a single press of the Alt key to toggle the menu bar visibility
+    // ImGuiKey_LeftAlt and ImGuiKey_RightAlt are used for specific alt keys
+    if (ImGui::IsKeyPressed(ImGuiKey_LeftAlt, false) || ImGui::IsKeyPressed(ImGuiKey_RightAlt, false)) {
+        showMenuBar = !showMenuBar;
+    }
+    
+    float menu_bar_height = 0.0f;
+    if(showMenuBar) {
+        if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("File")) {
+                if (ImGui::MenuItem("Import Shapes JSON")) {
+                    // Call the import function when selected
+                    importJson();
+                }
+                if (ImGui::MenuItem("Export Shapes JSON")) {
+                    // Call the export function when selected
+                    exportJson();
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+        // Get the height of the menu bar only when it's rendered
+        menu_bar_height = ImGui::GetFrameHeight();
+    }
+
+    // --- Make the ImGui window fill the entire GLFW window ---
+    ImGui::SetNextWindowPos(ImVec2(0, menu_bar_height));
+    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - menu_bar_height));
 
     // --- Remove window decorations and make it non-movable/resizable ---
     ImGui::Begin("Simple Shape Editor", nullptr,
@@ -143,6 +170,7 @@ void ShapeEditorGUI::renderCanvasPanel() {
         // IMPORTANT: Invisible button to capture mouse input over the canvas
         ImGui::InvisibleButton("Canvas", canvas_size);
         bool is_canvas_hovered = ImGui::IsItemHovered();
+        bool is_canvas_active = ImGui::IsItemActive();   // Checks if the invisible button (canvas) is clicked/active
         // Mouse position relative to the ImGui window
         ImVec2 mouse_pos_absolute = ImGui::GetIO().MousePos;
         // Mouse position relative to the canvas's top-left corner
@@ -171,7 +199,12 @@ void ShapeEditorGUI::renderCanvasPanel() {
             }
         }
 
-        if (selectedShapeIndex != -1 && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        // Handle shape dragging
+        // Only drag if a shape is selected, the canvas is active (meaning the invisible button was clicked and held),
+        // AND the mouse is currently dragging.
+        // ImGui::IsItemActive() is crucial here: it will only be true if the "Canvas" invisible button is the active item
+        // (i.e., the mouse was pressed down over it). This prevents dragging when interacting with other widgets.
+        if (selectedShapeIndex != -1 && is_canvas_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
             shapes[selectedShapeIndex]->position.x += ImGui::GetIO().MouseDelta.x;
             shapes[selectedShapeIndex]->position.y += ImGui::GetIO().MouseDelta.y;
         }
@@ -193,4 +226,14 @@ void ShapeEditorGUI::addShape(Args&&... args) {
     }
     selectedShapeIndex = shapes.size() - 1;
     shapes[selectedShapeIndex]->isSelected = true;
+}
+
+void ShapeEditorGUI::importJson() 
+{
+
+}
+
+void ShapeEditorGUI::exportJson()
+{
+
 }
