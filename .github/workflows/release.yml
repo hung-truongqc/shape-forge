@@ -7,6 +7,11 @@ on:
   pull_request:              # Optional: build on PRs too
     branches: ["**"]
 
+# Allow for release write
+permissions:
+  contents: write
+
+
 jobs:
   build:
     runs-on: ubuntu-latest
