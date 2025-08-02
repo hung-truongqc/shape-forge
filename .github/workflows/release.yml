@@ -2,7 +2,7 @@ name: Build and Conditionally Release ShapeForge
 
 on:
   push:
-    branches: ["**"]        # Build on all branches
+    branches: ["**"]         # Build on all branches
     tags: ["v*"]             # Also trigger on tags like v1.0.0, v2.0.0-beta, v2.1.1-nopublish
   pull_request:              # Optional: build on PRs too
     branches: ["**"]
@@ -10,7 +10,6 @@ on:
 # Allow for release write
 permissions:
   contents: write
-
 
 jobs:
   build:
@@ -55,6 +54,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: shape_forge_binary
+          path: shape_forge_binary  # <- this is where artifacts will be restored
+
       - name: Upload GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -67,6 +72,6 @@ jobs:
       - name: Upload Binary to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/bin/release/shape-forge
+          files: shape_forge_binary/release/shape-forge  # <-- updated path
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
