@@ -73,7 +73,6 @@ void ShapeEditorGUI::renderControlsPanel()
     // Edit color as RGB
     ImGui::ColorEdit3("Color###New", newShapeColor.data()); // Convert to float* raw pointer for IMGUI
 
-    // Removed "New Shape Position" input as click-to-add is primary
     ImGui::Separator();
 
     // Circle creation
@@ -127,11 +126,11 @@ void ShapeEditorGUI::renderControlsPanel()
             ImGui::InputFloat2("Position##Edit", (float*)&shapes[i]->position);
 
             // Specific properties for Circle
-            if (Circle* circle = dynamic_cast<Circle*>(shapes[i].get())) {
+            if (auto* circle = dynamic_cast<Circle*>(shapes[i].get())) {
                 ImGui::SliderFloat("Radius##Edit", &circle->radius, 10.0f, 150.0f, "%.1f");
             }
             // Specific properties for Rectangle
-            else if (Rectangle* rect = dynamic_cast<Rectangle*>(shapes[i].get())) {
+            else if (auto* rect = dynamic_cast<Rectangle*>(shapes[i].get())) {
                 ImGui::SliderFloat2("Size##Edit", (float*)&rect->size, 10.0f, 200.0f, "%.1f");
             }
 
@@ -179,6 +178,39 @@ void ShapeEditorGUI::handleMouseShape(const bool& is_canvas_hovered, const ImVec
             ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
         }
     }
+}
+
+void ShapeEditorGUI::handleShapeDragging(const ImVec2& canvas_size)
+{   
+    // No shape is selected
+    if (selectedShapeIndex == -1) return;
+
+    auto& shapeObject = shapes[selectedShapeIndex];
+    ImVec2 newPosition = ImVec2(
+        shapeObject->position.x + ImGui::GetIO().MouseDelta.x,
+        shapeObject->position.y + ImGui::GetIO().MouseDelta.y
+    );
+
+    // Specific properties for Circle
+    if (auto* circle = dynamic_cast<Circle*>(shapeObject.get())) {
+         // For circles, clamp the center position considering radius
+        newPosition.x = std::max(circle->radius, std::min(canvas_size.x - circle->radius, newPosition.x));
+        newPosition.y = std::max(circle->radius, std::min(canvas_size.y - circle->radius, newPosition.y));
+    }
+    // Specific properties for Rectangle
+    else if (auto* rect = dynamic_cast<Rectangle*>(shapeObject.get())) {
+        // For rectangles, clamp the top-left position considering size
+        newPosition.x = std::max(0.0f, std::min(canvas_size.x - rect->size.x, newPosition.x));
+        newPosition.y = std::max(0.0f, std::min(canvas_size.y - rect->size.y, newPosition.y));
+    }
+    else
+    {
+        newPosition.x = std::max(0.0f, std::min(canvas_size.x, newPosition.x));
+        newPosition.y =  std::max(0.0f, std::min(canvas_size.y, newPosition.y));
+    }
+      // Apply the clamped position
+    shapeObject->position = newPosition;
+
 }
 
 void ShapeEditorGUI::renderCanvasPanel() {
@@ -238,8 +270,7 @@ void ShapeEditorGUI::renderCanvasPanel() {
         // ImGui::IsItemActive() is crucial here: it will only be true if the "Canvas" invisible button is the active item
         // (i.e., the mouse was pressed down over it). This prevents dragging when interacting with other widgets.
         if (selectedShapeIndex != -1 && is_canvas_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-            shapes[selectedShapeIndex]->position.x += ImGui::GetIO().MouseDelta.x;
-            shapes[selectedShapeIndex]->position.y += ImGui::GetIO().MouseDelta.y;
+            handleShapeDragging(canvas_size);
         }
 
         // Draw all shapes
