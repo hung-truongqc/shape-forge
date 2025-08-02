@@ -25,6 +25,7 @@ jobs:
       - name: Build inside Docker (with setup)
         run: |
           docker run --rm \
+            -u root \ 
             -v ${{ github.workspace }}:/home/dev/app \
             -w /home/dev/app \
             ghcr.io/hung-truongqc/shape_forge_builder:latest \
