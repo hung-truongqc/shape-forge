@@ -1,82 +1,145 @@
 # Project Overview
 
------
-# Description
+## Description
 
-This project was designed as a C++ demo for a case study on how to integrate Dear ImGui with GLFW and gl3w with modern C++ idom . It demonstrates polymorphic shape handling, custom rendering using OpenGL, and GUI integration via Dear ImGui. I intentionally avoided physics or external engines to focus on build tooling, architecture, and interaction design
+**ShapeForge** is a C++ learning project that demonstrates how to integrate **Dear ImGui**, **GLFW**, and **gl3w** using modern C++ idioms. The focus is on architecture, build tooling, and immediate-mode GUI workflows — not game engines or physics simulation.
 
-# Design
+The project is packaged with:
 
-## Core Libraries
+- A portable Docker-based build environment  
+- CMake-based builds for both Linux and Windows  
+- GitHub Actions pipelines for CI/CD (build, lint, release)
 
-### GLFW
 
-  * **Purpose:** Cross-platform window creation and input handling.
-  * **Provides:** Window management, OpenGL context creation, and keyboard/mouse event handling.
-  * **Why Needed:** Abstracts operating system-specific windowing APIs across Linux, Windows, and macOS.
+Physics or external engines are intentionally excluded to focus on **build tooling**, **architecture**, and **interaction design**.
 
-### gl3w
+## Features
+- 🖱️ **Drag & Drop Shapes**: Move circles and rectangles interactively using your mouse  
+- 🔁 **Change Shape Type**: Switch between shape types via the UI  
+- 🧱 **Boundary Clamping**: Shapes cannot be moved outside the canvas region  
+- 🔍 **Cursor Feedback**: Cursor changes visually when hovering or interacting with shapes  
+- 🛠 **Cross-platform Build System**: Uses CMake + Docker for reproducible builds  
+- 🤖 **GitHub Actions CI**: Linting, build checks, and automated release  
+- ✅ **Super-Linter**: Ensures code quality and style consistency across commit
 
-  * **Purpose:** OpenGL function loader.
-  * **Provides:** Runtime loading of modern OpenGL functions.
-  * **Why Needed:** Modern OpenGL requires explicit loading of function pointers at runtime.
+## Video Demo
 
-### Dear ImGui
+https://github.com/user-attachments/assets/9a60f48f-2f43-40c7-a15b-4e65b49aec80
 
-  * **Purpose:** Immediate-mode GUI library.
-  * **Provides:** A suite of UI widgets (e.g., buttons, windows, input fields) rendered using OpenGL.
-  * **Why Needed:** Facilitates the creation of user interfaces for elements such as map controls and coordinate lists.
+---
 
-## How They Work Together
+## Design
+
+### Dependency
+
+- Modern C++ standard used for type safety, structured bindings, and RAII  
+- **CMake:** Cross-platform build system  
+- **ImGui:** GUI library - v1.90.1  
+- **GLFW:** Windowing and input - v3.4  
+- **gl3w:** OpenGL function loader
+
+### Core Libraries
+
+#### GLFW
+
+- **Purpose:** Cross-platform window creation and input handling  
+- **Provides:** Window management, OpenGL context creation, keyboard/mouse events  
+- **Why Needed:** Abstracts OS-specific windowing APIs for Linux, Windows, and macOS
+
+#### gl3w
+
+- **Purpose:** OpenGL function loader  
+- **Provides:** Runtime loading of modern OpenGL functions  
+- **Why Needed:** Modern OpenGL requires explicit function pointer loading at runtime
+
+#### Dear ImGui
+
+- **Purpose:** Immediate-mode GUI library  
+- **Provides:** UI widgets (buttons, windows, input fields) rendered via OpenGL  
+- **Why Needed:** Enables UI elements like map controls and coordinate displays
+
+### How They Work Together
 
 ```
-GLFW   → Creates window + OpenGL context
-gl3w   → Loads OpenGL functions for that context
-ImGui  → Uses loaded OpenGL functions to render the UI
+GLFW   → Creates window + OpenGL context  
+gl3w   → Loads OpenGL functions for that context  
+ImGui  → Uses loaded OpenGL functions to render the UI  
 ```
 
-**Flow:** **GLFW** manages the window and user input. **gl3w** makes the necessary OpenGL functions available to the application. **ImGui** then renders the graphical user interface using these loaded OpenGL functions. Finally, the dev's application renders the map tiles within the same OpenGL context.
+**Flow:**  
+- **GLFW** manages the window and input  
+- **gl3w** loads OpenGL functions  
+- **ImGui** renders UI using those functions  
+- The application renders map tiles in the same OpenGL context  
 
-**Backends:** `imgui_impl_glfw.cpp` and `imgui_impl_opengl3.cpp` serve as integration backends, bridging ImGui with GLFW and OpenGL, respectively.
+**Backends:**  
+`imgui_impl_glfw.cpp` and `imgui_impl_opengl3.cpp` bridge ImGui with GLFW and OpenGL, respectively.
 
------
+---
 
-# Compiling
+## Compiling
 
-## Linux
+### Linux
 
-To download and extract dependencies, execute the following command:
+To download and extract dependencies:
 
 ```bash
-docker run --rm -it -v "$(pwd)":/home/dev/app map_dev_env:latest bash -c "rm -r thirdparties; ./download_and_setup_dependencies.sh"
+docker run --rm -it -v "$(pwd)":/home/dev/app ghcr.io/hung-truongqc/shape_forge_builder:latest bash -c "rm -r thirdparties; ./download_and_setup_dependencies.sh"
 ```
 
-### Build Commands for Source Code
+### Build Commands
 
-The **`BUILD_RELEASE`** flag controls the build type, allowing the dev to switch between "**release**" and "**debug**" modes. By default, the build will be in "release" mode.
+The build process uses the `BUILD_RELEASE` flag (default: release mode).
 
 #### Release Mode
 
-To build in release mode:
-
 ```bash
-docker run --rm -it -v "$(pwd)":/home/dev/app map_dev_env:latest bash -c "rm -r build && mkdir build && cd build && cmake .. && cmake --build ."
+docker run --rm -it -v "$(pwd)":/home/dev/app ghcr.io/hung-truongqc/shape_forge_builder:latest bash -c "rm -r build && mkdir build && cd build && cmake .. && cmake --build ."
 ```
 
 #### Debug Mode
 
-If the dev plans to debug on their host machine, it's crucial to add the following line to their debugger configuration (.gdbinit). This is because the Docker build will generate symbol tables with paths specific to the Docker environment, which will almost certainly differ from the project's path on the host machine.
+To debug on your host machine, add this to `.gdbinit`:
 
 ```
 set substitute-path /home/dev/app <YOUR_PROJECT_PATH>
 ```
 
-To build in debug mode:
+Then build with:
 
 ```bash
-docker run --rm -it -v "$(pwd)":/home/dev/app map_dev_env:latest bash -c "rm -r build && mkdir build && cd build && cmake .. -DBUILD_RELEASE=OFF && cmake --build ."
+docker run --rm -it -v "$(pwd)":/home/dev/app ghcr.io/hung-truongqc/shape_forge_builder:latest bash -c "rm -r build && mkdir build && cd build && cmake .. -DBUILD_RELEASE=OFF && cmake --build ."
 ```
 
-## Windows
+---
+
+### Windows
 
 TBD
+
+---
+
+## Usage (Linux)
+
+After building on Linux using Docker, or downloading the binary from the release tag, you can run the application like this
+
+
+```bash
+./shape-forge 
+```
+Note: You’ll need to manually add execute permissions. This is intentional the distributed binary does not have executable rights by default.
+
+### Controls
+
+- Use the **GUI panel** to:
+  - Create and select shapes
+  - Move shapes using mouse drag
+  - View and edit shape properties
+
+### Notes
+
+- This binary is built inside a Docker container with OpenGL support.  
+- Ensure your host system allows OpenGL passthrough from Docker (e.g., using `-v /tmp/.X11-unix:/tmp/.X11-unix` and `-e DISPLAY=$DISPLAY`).
+- The UI is rendered using Dear ImGui within the OpenGL context  
+- Debug mode provides better symbol mapping for GDB when using Docker  
+- The canvas runs in a single OpenGL context shared by both GUI and rendering layers
