@@ -1,4 +1,7 @@
+//========================================================================
+// Copyright (c) 2025 hung-truong
 // --- Main GUI Class for Shape Editor ---
+
 #pragma once
 #include "circle.h"
 #include "rectangle.h"
@@ -35,6 +38,9 @@ private:
     // Generic function to add a shape
     template<typename T, typename... Args>
     void addShape(Args&&... args);
+
+    // The function handle the logic for changing shape of cursor, when hover or dragging shape object
+    void handleMouseShape(const bool& is_canvas_hovered, const ImVec2& mouse_pos_in_canvas);
 
     // TBD - For features to export and import a JSON contains all Shapes of the current canvas
     void importJson();

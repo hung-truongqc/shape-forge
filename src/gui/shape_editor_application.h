@@ -1,4 +1,7 @@
+//========================================================================
+// Copyright (c) 2025 hung-truong
 // --- Simple Application class to manage GLFW and ImGui lifecycle ---
+
 #pragma once
 #include <iostream>
 

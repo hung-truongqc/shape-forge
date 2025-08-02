@@ -1,3 +1,6 @@
+//========================================================================
+// Copyright (c) 2025 hung-truong
+
 #pragma once
 #include "shape.h"
 class Circle : public Shape {

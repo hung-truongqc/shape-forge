@@ -1,3 +1,6 @@
+//========================================================================
+// Copyright (c) 2025 hung-truong
+
 #include "shape_editor_application.h"
 
 bool ShapeEditorApplication::initialize()

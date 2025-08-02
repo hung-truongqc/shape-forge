@@ -1,3 +1,6 @@
+//========================================================================
+// Copyright (c) 2025 hung-truong
+
 #include "shape_editor_gui.h"
 void ShapeEditorGUI::render()
 {
@@ -152,6 +155,32 @@ void ShapeEditorGUI::renderControlsPanel()
     }    
 }
 
+void ShapeEditorGUI::handleMouseShape(const bool& is_canvas_hovered, const ImVec2& mouse_pos_in_canvas)
+{
+    // --- Cursor logic for shapes ---
+    if (is_canvas_hovered) {
+        bool shapeHovered = false;
+        // Iterate through shapes in reverse order to check for the topmost shape
+        for (int i = shapes.size() - 1; i >= 0; --i) {
+            if (shapes[i]->contains(mouse_pos_in_canvas)) {
+                // If a shape is being dragged, show the grab cursor
+                if (selectedShapeIndex != -1 && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+                    ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+                } else {
+                    // Otherwise, show the hand cursor for hovering
+                    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+                }
+                shapeHovered = true;
+                break; // Found the topmost shape, no need to check others
+            }
+        }
+        // If nothing is hovered, revert to the default arrow
+        if (!shapeHovered) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+        }
+    }
+}
+
 void ShapeEditorGUI::renderCanvasPanel() {
         ImGui::Text("Drawing Canvas");
         ImGui::Separator();
@@ -171,10 +200,14 @@ void ShapeEditorGUI::renderCanvasPanel() {
         ImGui::InvisibleButton("Canvas", canvas_size);
         bool is_canvas_hovered = ImGui::IsItemHovered();
         bool is_canvas_active = ImGui::IsItemActive();   // Checks if the invisible button (canvas) is clicked/active
+
         // Mouse position relative to the ImGui window
         ImVec2 mouse_pos_absolute = ImGui::GetIO().MousePos;
         // Mouse position relative to the canvas's top-left corner
         ImVec2 mouse_pos_in_canvas = ImVec2(mouse_pos_absolute.x - canvas_pos.x, mouse_pos_absolute.y - canvas_pos.y);
+
+        // --- Cursor logic for shapes ---
+        handleMouseShape(is_canvas_hovered, mouse_pos_in_canvas);
 
         // Handle shape selection and dragging
         if (is_canvas_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {

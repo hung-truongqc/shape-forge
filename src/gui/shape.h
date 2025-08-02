@@ -1,3 +1,5 @@
+//========================================================================
+// Copyright (c) 2025 hung-truong
 #pragma once
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
