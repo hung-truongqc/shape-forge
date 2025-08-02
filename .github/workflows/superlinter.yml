@@ -31,3 +31,7 @@ jobs:
         env:
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Enable only the GCC linter
+          VALIDATE_CPP: true
+          # Disable all other linters (optional, but good for clarity)
+          VALIDATE_ALL_CODEBASE: false
