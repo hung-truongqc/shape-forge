@@ -25,12 +25,12 @@ jobs:
       - name: Build inside Docker (with setup)
         run: |
           docker run --rm \
-            -u root \ 
+            -u root \
             -v ${{ github.workspace }}:/home/dev/app \
             -w /home/dev/app \
             ghcr.io/hung-truongqc/shape_forge_builder:latest \
             bash -c "
-              rm -rf thirdparties;
+              rm -rf thirdparties/*;
               ./download_and_setup_dependencies.sh;
               cmake -S . -B build -DBUILD_RELEASE=ON;
               cmake --build build
