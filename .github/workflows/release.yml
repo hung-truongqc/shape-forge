@@ -35,6 +35,11 @@ jobs:
               cmake -S . -B build -DBUILD_RELEASE=ON;
               cmake --build build
             "
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shape_forge_binary
+          path: ./build/bin
 
   release:
     needs: build
