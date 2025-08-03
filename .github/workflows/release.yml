@@ -1,0 +1,71 @@
+name: Build and Conditionally Release ShapeForge
+
+on:
+  push:
+    branches: ["**"]         # Build on all branches
+    tags: ["v*"]             # Also trigger on tags like v1.0.0, v2.0.0-beta, v2.1.1-nopublish
+  pull_request:              # Optional: build on PRs too
+    branches: ["**"]
+
+# Allow for release write
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build inside Docker (with setup)
+        run: |
+          docker run --rm \
+            -u root \
+            -v ${{ github.workspace }}:/home/dev/app \
+            -w /home/dev/app \
+            ghcr.io/hung-truongqc/shape_forge_builder:latest \
+            bash -c "
+              rm -rf thirdparties/*;
+              ./download_and_setup_dependencies.sh;
+              cmake -S . -B build -DBUILD_RELEASE=ON;
+              cmake --build build
+            "
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shape_forge_binary
+          path: ./build/bin
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-nopublish')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: shape_forge_binary
+          path: shape_forge_binary  # <- this is where artifacts will be restored
+
+      - name: Upload GitHub Release with binary
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
+          files: shape_forge_binary/release/shape-forge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
