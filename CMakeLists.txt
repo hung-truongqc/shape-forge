@@ -92,6 +92,7 @@ endif()
 
 # Create main executable
 set(MAIN_SOURCES
+    src/gui/shape_clipboard.cpp
     src/gui/shape_editor_application.cpp
     src/gui/shape_editor_gui.cpp
     src/main.cpp

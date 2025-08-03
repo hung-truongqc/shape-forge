@@ -33,4 +33,9 @@ public:
         return point_in_canvas_coords.x >= position.x && point_in_canvas_coords.x <= (position.x + size.x) &&
                point_in_canvas_coords.y >= position.y && point_in_canvas_coords.y <= (position.y + size.y);
     }
+
+    //Override function for cloning
+    std::unique_ptr<Shape> clone() const override {
+        return std::make_unique<Rectangle>(position, size, color, name);
+    }
 };

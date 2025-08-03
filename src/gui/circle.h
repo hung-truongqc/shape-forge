@@ -33,4 +33,8 @@ public:
         float dy = point_in_canvas_coords.y - position.y;
         return (dx * dx + dy * dy) <= (radius * radius);
     }
+
+    std::unique_ptr<Shape> clone() const override {
+        return std::make_unique<Circle>(position, radius, color, name);
+    }
 };
