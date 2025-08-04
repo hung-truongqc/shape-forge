@@ -18,6 +18,7 @@ Physics or external engines are intentionally excluded to focus on **build tooli
 - 🔁 **Change Shape Type**: Switch between shape types via the UI  
 - 🧱 **Boundary Clamping**: Shapes cannot be moved outside the canvas region  
 - 🔍 **Cursor Feedback**: Cursor changes visually when hovering or interacting with shapes  
+- 🧩 **Context Menu Actions**: Right-click to Copy, Cut, Paste, or Delete selected shapes
 - 🛠 **Cross-platform Build System**: Uses CMake + Docker for reproducible builds  
 - 🤖 **GitHub Actions CI**: Linting, build checks, and automated release  
 - ✅ **Super-Linter**: Ensures code quality and style consistency across commit
@@ -27,6 +28,10 @@ Physics or external engines are intentionally excluded to focus on **build tooli
 https://github.com/user-attachments/assets/9a60f48f-2f43-40c7-a15b-4e65b49aec80
 
 ---
+
+## Project flow
+
+[📈 View Project Flow Diagram](doc/project_flow_diagram.md)
 
 ## Design
 
