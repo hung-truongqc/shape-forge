@@ -5,6 +5,15 @@
 #pragma once
 #include "circle.h"
 #include "rectangle.h"
+#include "shape_clipboard.h"
+
+enum class MenuOperation {
+    CUT,
+    COPY,
+    PASTE,
+    DELETE
+};
+
 class ShapeEditorGUI {
 private:
     // Using std::vector of std::unique_ptr for owning polymorphic shapes
@@ -17,6 +26,8 @@ private:
     std::array<float, 3> newShapeColor = {1.0f, 1.0f, 1.0f}; // RGB as floats (white by default)
     char newShapeNameBuffer[128] = ""; // For C-style string input
     bool showMenuBar = false;
+    // Clipboard system
+    ShapeClipboard clipboardSystem;
 
 public:
     ShapeEditorGUI() {
@@ -35,17 +46,33 @@ private:
     // The function render the canvas panel on the right side of the application
     void renderCanvasPanel();
 
-    // Generic function to add a shape
+    // Renders a right-click context menu on the canvas area.
+    // Offers options to cut, copy, paste, or delete the currently selected shape.
+    void renderCanvasContextMenu(const bool& is_canvas_hovered);
+
+    // Adds a new shape to the canvas and makes it the selected shape.
+    // Any previously selected shape will be deselected.
     template<typename T, typename... Args>
     void addShape(Args&&... args);
+
+    // Cuts the currently selected shape.
+    // It copies the selected shape to the clipboard, then removes it from the canvas.
+    void cutShape();
+
+    // Copies the currently selected shape to the clipboard.
+    void copyShape();
+
+    // Pastes the shape currently stored in the clipboard onto the canvas.
+    // The pasted shape is offset in position and automatically selected.
+    void pasteShape();
+
+    // Deletes the currently selected shape from the canvas.
+    void deleteShape();
 
     // The function handle the logic for changing shape of cursor, when hover or dragging shape object
     void handleMouseShape(const bool& is_canvas_hovered, const ImVec2& mouse_pos_in_canvas);
 
-    // 
-    void handleShapeDragging(const ImVec2& canvas_size);
-
-    // TBD - For features to export and import a JSON contains all Shapes of the current canvas
+    // TBD - For features to export and import a JSON contains all Shapes on the current canvas
     void importJson();
     void exportJson();
 };

@@ -11,7 +11,7 @@ void ShapeEditorGUI::render()
     if (ImGui::IsKeyPressed(ImGuiKey_LeftAlt, false) || ImGui::IsKeyPressed(ImGuiKey_RightAlt, false)) {
         showMenuBar = !showMenuBar;
     }
-    
+
     float menu_bar_height = 0.0f;
     if(showMenuBar) {
         if (ImGui::BeginMainMenuBar()) {
@@ -37,7 +37,7 @@ void ShapeEditorGUI::render()
     ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - menu_bar_height));
 
     // --- Remove window decorations and make it non-movable/resizable ---
-    ImGui::Begin("Simple Shape Editor", nullptr,
+    ImGui::Begin("Shape Forge", nullptr,
                     ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
                     ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground); // NoBackground to fully cover OpenGL clear color
 
@@ -47,7 +47,7 @@ void ShapeEditorGUI::render()
 
     // Left Panel (Controls) - occupies a fixed width and fills vertical space
     // ImGui::BeginChild is used to create sub-regions that manage their own layout and scrolling
-    ImGui::BeginChild("ControlsPanel", 
+    ImGui::BeginChild("ControlsPanel",
                     ImVec2(left_panel_width, 0), true, ImGuiWindowFlags_AlwaysUseWindowPadding); // 0 height means fill available vertical
     renderControlsPanel();
     ImGui::EndChild();
@@ -55,8 +55,8 @@ void ShapeEditorGUI::render()
     ImGui::SameLine(); // Place the next item on the same line
 
     // Right Panel (Drawing Canvas) - fills remaining horizontal and vertical space
-    ImGui::BeginChild("DrawingCanvasPanel", 
-                    ImVec2(main_content_size.x - left_panel_width - ImGui::GetStyle().ItemSpacing.x, 0), 
+    ImGui::BeginChild("DrawingCanvasPanel",
+                    ImVec2(main_content_size.x - left_panel_width - ImGui::GetStyle().ItemSpacing.x, 0),
                     false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse); // Fill remaining horizontal, 0 height means fill available vertical
     renderCanvasPanel();
     ImGui::EndChild();
@@ -151,7 +151,7 @@ void ShapeEditorGUI::renderControlsPanel()
     if (ImGui::Button("Quit Application", ImVec2(0, 0))) {
         // Signal GLFW to close the window
         glfwSetWindowShouldClose(glfwGetCurrentContext(), true);
-    }    
+    }
 }
 
 void ShapeEditorGUI::handleMouseShape(const bool& is_canvas_hovered, const ImVec2& mouse_pos_in_canvas)
@@ -180,37 +180,35 @@ void ShapeEditorGUI::handleMouseShape(const bool& is_canvas_hovered, const ImVec
     }
 }
 
-void ShapeEditorGUI::handleShapeDragging(const ImVec2& canvas_size)
-{   
-    // No shape is selected
-    if (selectedShapeIndex == -1) return;
-
-    auto& shapeObject = shapes[selectedShapeIndex];
-    ImVec2 newPosition = ImVec2(
-        shapeObject->position.x + ImGui::GetIO().MouseDelta.x,
-        shapeObject->position.y + ImGui::GetIO().MouseDelta.y
-    );
-
-    // Specific properties for Circle
-    if (auto* circle = dynamic_cast<Circle*>(shapeObject.get())) {
-         // For circles, clamp the center position considering radius
-        newPosition.x = std::max(circle->radius, std::min(canvas_size.x - circle->radius, newPosition.x));
-        newPosition.y = std::max(circle->radius, std::min(canvas_size.y - circle->radius, newPosition.y));
+void ShapeEditorGUI::renderCanvasContextMenu(const bool& is_canvas_hovered)
+{
+    // Open context menu on right-click
+    if (is_canvas_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+        ImGui::OpenPopup("CanvasContextMenu");
     }
-    // Specific properties for Rectangle
-    else if (auto* rect = dynamic_cast<Rectangle*>(shapeObject.get())) {
-        // For rectangles, clamp the top-left position considering size
-        newPosition.x = std::max(0.0f, std::min(canvas_size.x - rect->size.x, newPosition.x));
-        newPosition.y = std::max(0.0f, std::min(canvas_size.y - rect->size.y, newPosition.y));
-    }
-    else
-    {
-        newPosition.x = std::max(0.0f, std::min(canvas_size.x, newPosition.x));
-        newPosition.y =  std::max(0.0f, std::min(canvas_size.y, newPosition.y));
-    }
-      // Apply the clamped position
-    shapeObject->position = newPosition;
 
+    // Render the context menu popup
+    if (ImGui::BeginPopup("CanvasContextMenu")) {
+        if (ImGui::MenuItem("Cut", "Ctrl+X", false, selectedShapeIndex != -1)) {
+            cutShape();
+        }
+
+        if (ImGui::MenuItem("Copy", "Ctrl+C", false, selectedShapeIndex != -1)) {
+            copyShape();
+        }
+
+        if (ImGui::MenuItem("Paste", "Ctrl+V", false, clipboardSystem.hasContent())) {
+            pasteShape();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Delete", "Del", false, selectedShapeIndex != -1)) {
+            deleteShape();
+        }
+
+        ImGui::EndPopup();
+    }
 }
 
 void ShapeEditorGUI::renderCanvasPanel() {
@@ -241,6 +239,9 @@ void ShapeEditorGUI::renderCanvasPanel() {
         // --- Cursor logic for shapes ---
         handleMouseShape(is_canvas_hovered, mouse_pos_in_canvas);
 
+        //  --- Right click context menu for Shapes ---
+        renderCanvasContextMenu(is_canvas_hovered);
+
         // Handle shape selection and dragging
         if (is_canvas_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
             bool foundSelection = false;
@@ -270,7 +271,7 @@ void ShapeEditorGUI::renderCanvasPanel() {
         // ImGui::IsItemActive() is crucial here: it will only be true if the "Canvas" invisible button is the active item
         // (i.e., the mouse was pressed down over it). This prevents dragging when interacting with other widgets.
         if (selectedShapeIndex != -1 && is_canvas_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-            handleShapeDragging(canvas_size);
+            shapes[selectedShapeIndex]->clampPosition(canvas_size);
         }
 
         // Draw all shapes
@@ -281,7 +282,8 @@ void ShapeEditorGUI::renderCanvasPanel() {
 
 template<typename T, typename... Args>
 void ShapeEditorGUI::addShape(Args&&... args) {
-    shapes.push_back(std::make_unique<T>(std::forward<Args>(args)... , newShapeColor, newShapeNameBuffer));
+    std::string shapeName(newShapeNameBuffer);  // Create string
+    shapes.push_back(std::make_unique<T>(std::forward<Args>(args)... , newShapeColor, std::move(shapeName)));
     // Reset name buffer after adding
     newShapeNameBuffer[0] = '\0';
     // Select the newly added shape
@@ -292,7 +294,49 @@ void ShapeEditorGUI::addShape(Args&&... args) {
     shapes[selectedShapeIndex]->isSelected = true;
 }
 
-void ShapeEditorGUI::importJson() 
+void ShapeEditorGUI::deleteShape() {
+    if (selectedShapeIndex == -1) return;
+    shapes.erase(shapes.begin() + selectedShapeIndex);
+    selectedShapeIndex = -1;
+}
+
+void ShapeEditorGUI::copyShape()
+{
+    if (selectedShapeIndex == -1) return;
+
+    // Use the clipboard's single generic copy method
+    clipboardSystem.copyShape(shapes[selectedShapeIndex].get());
+}
+
+void ShapeEditorGUI::pasteShape()
+{
+    auto newShape = clipboardSystem.createPastedShape();
+    if (!newShape) {
+        return;
+    }
+
+    // Deselect the current obj if any
+    if (selectedShapeIndex != -1 )
+        shapes[selectedShapeIndex]->isSelected = false;
+
+    // Push and select the new object
+    shapes.push_back(std::move(newShape));
+    selectedShapeIndex = shapes.size() - 1;
+    shapes[selectedShapeIndex]->isSelected = true;
+}
+
+void ShapeEditorGUI::cutShape()
+{
+    if (selectedShapeIndex == -1) return;
+
+    // Copy the clipboard first
+    copyShape();
+
+    // Then delete the original
+    deleteShape();
+}
+
+void ShapeEditorGUI::importJson()
 {
 
 }

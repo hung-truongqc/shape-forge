@@ -1,5 +1,6 @@
 //========================================================================
 // Copyright (c) 2025 hung-truong
+
 #pragma once
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -33,6 +34,13 @@ public:
     // Pure virtual function to check if a point is inside the shape
     // Point is expected to be in canvas-local coordinates
     virtual bool contains(ImVec2 point_in_canvas_coords) const = 0;
+
+    // Pure virtual function for cloning object
+    virtual std::unique_ptr<Shape> clone() const = 0;
+
+    // Pure virtual function for clamping a shape object position to be within the canvas
+    virtual void clampPosition(const ImVec2& canvas_size) = 0;
+
 
     // Common properties for all shapes
     ImVec2 position; // Position is now relative to the canvas's top-left corner

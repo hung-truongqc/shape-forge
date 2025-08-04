@@ -18,6 +18,7 @@ Physics or external engines are intentionally excluded to focus on **build tooli
 - 🔁 **Change Shape Type**: Switch between shape types via the UI  
 - 🧱 **Boundary Clamping**: Shapes cannot be moved outside the canvas region  
 - 🔍 **Cursor Feedback**: Cursor changes visually when hovering or interacting with shapes  
+- 🧩 **Context Menu Actions**: Right-click to Copy, Cut, Paste, or Delete selected shapes
 - 🛠 **Cross-platform Build System**: Uses CMake + Docker for reproducible builds  
 - 🤖 **GitHub Actions CI**: Linting, build checks, and automated release  
 - ✅ **Super-Linter**: Ensures code quality and style consistency across commit
@@ -27,6 +28,70 @@ Physics or external engines are intentionally excluded to focus on **build tooli
 https://github.com/user-attachments/assets/9a60f48f-2f43-40c7-a15b-4e65b49aec80
 
 ---
+
+## Project flow
+
+```mermaid
+graph TD
+    %% Libraries
+    subgraph "📚 Libraries"
+        GLFW["GLFW<br/>Window/Input"]
+        GL3W["gl3w<br/>OpenGL Loader"]
+        IMGUI["ImGui<br/>GUI"]
+    end
+
+    %% Code
+    subgraph "💻 Code"
+        MAIN["main.cpp"]
+        subgraph "gui/"
+            SHAPES["Shapes<br/>circle.h, rectangle.h"]
+            APP["Application<br/>shape_editor_*"]
+            CLIPBOARD["Clipboard<br/>Copy/Cut/Paste"]
+        end
+    end
+
+    %% Build
+    subgraph "🏗️ Build"
+        CMAKE["CMakeLists.txt"]
+        DOCKER["Docker Builder"]
+        DEPS["Dependencies<br/>thirdparties/"]
+    end
+
+    %% Deploy
+    subgraph "🚀 Deploy"
+        CI["GitHub Actions<br/>Lint + Build"]
+        RELEASE["Binary Release<br/>shape-forge"]
+    end
+
+    %% Flow
+    GLFW --> MAIN
+    GL3W --> MAIN
+    IMGUI --> MAIN
+    MAIN --> APP
+    APP --> SHAPES
+    APP --> CLIPBOARD
+    
+    CMAKE --> DOCKER
+    DEPS --> CMAKE
+    SHAPES --> CMAKE
+    APP --> CMAKE
+    CLIPBOARD --> CMAKE
+    MAIN --> CMAKE
+    
+    DOCKER --> CI
+    CI --> RELEASE
+
+    %% Styling
+    classDef lib fill:#ff6b6b,stroke:#e63946,stroke-width:3px,color:#fff
+    classDef code fill:#4ecdc4,stroke:#26a69a,stroke-width:3px,color:#fff
+    classDef build fill:#ffe66d,stroke:#ffcc02,stroke-width:3px,color:#000
+    classDef deploy fill:#a8e6cf,stroke:#52b788,stroke-width:3px,color:#000
+
+    class GLFW,GL3W,IMGUI lib
+    class MAIN,SHAPES,APP,GUI,CLIPBOARD code
+    class CMAKE,DOCKER,DEPS build
+    class CI,RELEASE deploy
+```
 
 ## Design
 

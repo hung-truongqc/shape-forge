@@ -19,7 +19,7 @@ public:
             (int)(color[1] * 255),
             (int)(color[2] * 255),
             255
-        );         
+        );
         draw_list->AddCircleFilled(screen_pos, radius, drawColor);
         // Draw a border if selected
         if (isSelected) {
@@ -32,5 +32,19 @@ public:
         float dx = point_in_canvas_coords.x - position.x;
         float dy = point_in_canvas_coords.y - position.y;
         return (dx * dx + dy * dy) <= (radius * radius);
+    }
+
+    void clampPosition(const ImVec2& canvas_size) override {
+        ImVec2 newPosition = ImVec2(
+            position.x + ImGui::GetIO().MouseDelta.x,
+            position.y + ImGui::GetIO().MouseDelta.y
+        );
+
+        position.x = std::max(radius, std::min(canvas_size.x - radius, newPosition.x));
+        position.y = std::max(radius, std::min(canvas_size.y - radius, newPosition.y));
+    }
+
+    std::unique_ptr<Shape> clone() const override {
+        return std::make_unique<Circle>(position, radius, color, name);
     }
 };
