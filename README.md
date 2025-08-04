@@ -82,13 +82,13 @@ graph TD
     CI --> RELEASE
 
     %% Styling
-    classDef lib fill:#e1f5fe,stroke:#0277bd
-    classDef code fill:#f3e5f5,stroke:#7b1fa2
-    classDef build fill:#fff3e0,stroke:#f57c00
-    classDef deploy fill:#e8f5e8,stroke:#388e3c
+    classDef lib fill:#ff6b6b,stroke:#e63946,stroke-width:3px,color:#fff
+    classDef code fill:#4ecdc4,stroke:#26a69a,stroke-width:3px,color:#fff
+    classDef build fill:#ffe66d,stroke:#ffcc02,stroke-width:3px,color:#000
+    classDef deploy fill:#a8e6cf,stroke:#52b788,stroke-width:3px,color:#000
 
     class GLFW,GL3W,IMGUI lib
-    class MAIN,SHAPES,APP,CLIPBOARD code
+    class MAIN,SHAPES,APP,GUI,CLIPBOARD code
     class CMAKE,DOCKER,DEPS build
     class CI,RELEASE deploy
 ```
