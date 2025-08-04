@@ -72,10 +72,6 @@ private:
     // The function handle the logic for changing shape of cursor, when hover or dragging shape object
     void handleMouseShape(const bool& is_canvas_hovered, const ImVec2& mouse_pos_in_canvas);
 
-    // Handles the logic for dragging a selected shape within the canvas.
-    // Ensures that the shape stays within the canvas boundaries, depending on its type.
-    void handleShapeDragging(const ImVec2& canvas_size);
-
     // TBD - For features to export and import a JSON contains all Shapes on the current canvas
     void importJson();
     void exportJson();

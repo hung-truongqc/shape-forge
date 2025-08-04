@@ -38,6 +38,9 @@ public:
     // Pure virtual function for cloning object
     virtual std::unique_ptr<Shape> clone() const = 0;
 
+    // Pure virtual function for clamping a shape object position to be within the canvas
+    virtual void clampPosition(const ImVec2& canvas_size) = 0;
+
 
     // Common properties for all shapes
     ImVec2 position; // Position is now relative to the canvas's top-left corner

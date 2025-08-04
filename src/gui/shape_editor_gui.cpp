@@ -211,39 +211,6 @@ void ShapeEditorGUI::renderCanvasContextMenu(const bool& is_canvas_hovered)
     }
 }
 
-void ShapeEditorGUI::handleShapeDragging(const ImVec2& canvas_size)
-{
-    // No shape is selected
-    if (selectedShapeIndex == -1) return;
-
-    auto& shapeObject = shapes[selectedShapeIndex];
-    ImVec2 newPosition = ImVec2(
-        shapeObject->position.x + ImGui::GetIO().MouseDelta.x,
-        shapeObject->position.y + ImGui::GetIO().MouseDelta.y
-    );
-
-    // Specific properties for Circle
-    if (auto* circle = dynamic_cast<Circle*>(shapeObject.get())) {
-         // For circles, clamp the center position considering radius
-        newPosition.x = std::max(circle->radius, std::min(canvas_size.x - circle->radius, newPosition.x));
-        newPosition.y = std::max(circle->radius, std::min(canvas_size.y - circle->radius, newPosition.y));
-    }
-    // Specific properties for Rectangle
-    else if (auto* rect = dynamic_cast<Rectangle*>(shapeObject.get())) {
-        // For rectangles, clamp the top-left position considering size
-        newPosition.x = std::max(0.0f, std::min(canvas_size.x - rect->size.x, newPosition.x));
-        newPosition.y = std::max(0.0f, std::min(canvas_size.y - rect->size.y, newPosition.y));
-    }
-    else
-    {
-        newPosition.x = std::max(0.0f, std::min(canvas_size.x, newPosition.x));
-        newPosition.y =  std::max(0.0f, std::min(canvas_size.y, newPosition.y));
-    }
-      // Apply the clamped position
-    shapeObject->position = newPosition;
-
-}
-
 void ShapeEditorGUI::renderCanvasPanel() {
         ImGui::Text("Drawing Canvas");
         ImGui::Separator();
@@ -304,7 +271,7 @@ void ShapeEditorGUI::renderCanvasPanel() {
         // ImGui::IsItemActive() is crucial here: it will only be true if the "Canvas" invisible button is the active item
         // (i.e., the mouse was pressed down over it). This prevents dragging when interacting with other widgets.
         if (selectedShapeIndex != -1 && is_canvas_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-            handleShapeDragging(canvas_size);
+            shapes[selectedShapeIndex]->clampPosition(canvas_size);
         }
 
         // Draw all shapes

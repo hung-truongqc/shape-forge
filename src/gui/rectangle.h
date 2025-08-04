@@ -34,6 +34,16 @@ public:
                point_in_canvas_coords.y >= position.y && point_in_canvas_coords.y <= (position.y + size.y);
     }
 
+    void clampPosition(const ImVec2& canvas_size) override {
+
+        ImVec2 newPosition = ImVec2(
+            position.x + ImGui::GetIO().MouseDelta.x,
+            position.y + ImGui::GetIO().MouseDelta.y
+        );
+        position.x = std::max(0.0f, std::min(canvas_size.x - size.x, newPosition.x));
+        position.y = std::max(0.0f, std::min(canvas_size.y - size.y, newPosition.y));
+    }
+
     //Override function for cloning
     std::unique_ptr<Shape> clone() const override {
         return std::make_unique<Rectangle>(position, size, color, name);
