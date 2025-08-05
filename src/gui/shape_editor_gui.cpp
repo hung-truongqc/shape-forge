@@ -2,6 +2,8 @@
 // Copyright (c) 2025 hung-truong
 
 #include "shape_editor_gui.h"
+#include <cmath>
+
 void ShapeEditorGUI::render()
 {
     // --- Add the Menu Bar at the top of the entire window ---
@@ -64,6 +66,7 @@ void ShapeEditorGUI::render()
     ImGui::End(); // End ImGui window
 }
 
+// Modified renderControlsPanel() method:
 void ShapeEditorGUI::renderControlsPanel()
 {
     ImGui::Text("Shape Creation");
@@ -75,31 +78,75 @@ void ShapeEditorGUI::renderControlsPanel()
 
     ImGui::Separator();
 
+    // 3D Mode Toggle Button
+    if (ImGui::Button(is3DMode ? "2D Mode" : "3D Mode", ImVec2(120, 0))) {
+        is3DMode = !is3DMode;
+        // Reset rotation when switching modes
+        if (!is3DMode) {
+            rotationAngle = 0.0f;
+        }
+    }
+
+    // Show rotation speed control only in 3D mode
+    if (is3DMode) {
+        static float rotationSpeedX = 0.8f;  // Up-down rotation speed
+        static float rotationSpeedY = 1.2f;  // Left-right rotation speed
+
+        ImGui::SliderFloat("Horizontal Speed", &rotationSpeedY, 0.1f, 3.0f, "%.1f");
+        ImGui::SliderFloat("Vertical Speed", &rotationSpeedX, 0.1f, 3.0f, "%.1f");
+
+        // Update rotation angles based on time and speed
+        rotationAngleY += rotationSpeedY * ImGui::GetIO().DeltaTime;
+        rotationAngleX += rotationSpeedX * ImGui::GetIO().DeltaTime;
+
+        // Keep angles in reasonable range
+        if (rotationAngleY > 2.0f * M_PI) {
+            rotationAngleY -= 2.0f * M_PI;
+        }
+        if (rotationAngleX > 2.0f * M_PI) {
+            rotationAngleX -= 2.0f * M_PI;
+        }
+    }
+
+    ImGui::Separator();
+
     // Circle creation
     ImGui::Text("Circle Properties:");
     ImGui::SliderFloat("Radius", &newCircleRadius, 10.0f, 150.0f, "%.1f");
-    // These buttons now add shapes at a default position if not clicked on canvas
+    // Disable shape creation buttons in 3D mode
+    ImGui::BeginDisabled(is3DMode);
     if (ImGui::Button("Add Circle", ImVec2(120, 0))) {
         addShape<Circle>(ImVec2(100,100), newCircleRadius); // Default pos
     }
+    ImGui::EndDisabled();
 
     ImGui::Separator();
 
     // Rectangle creation
     ImGui::Text("Rectangle Properties:");
     ImGui::SliderFloat2("Size", (float*)&newRectSize, 10.0f, 200.0f, "%.1f");
+    ImGui::BeginDisabled(is3DMode);
     if (ImGui::Button("Add Rectangle", ImVec2(120, 0))) {
         addShape<Rectangle>(ImVec2(150,150), newRectSize); // Default pos
     }
+    ImGui::EndDisabled();
 
     ImGui::Separator();
 
     // Shape List and Properties
     ImGui::Text("Shapes (%zu):", shapes.size());
+    if (is3DMode) {
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "3D Mode: Shapes are rotating");
+    }
+
     // Use ImGui::GetContentRegionAvail().y to make the child window fill remaining vertical space
     // Subtract space for the "Quit Application" button and its spacing
     float remaining_height_for_list = ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing() - ImGui::GetStyle().ItemSpacing.y;
     ImGui::BeginChild("ShapeList", ImVec2(0, remaining_height_for_list), true);
+
+    // Disable shape editing in 3D mode
+    ImGui::BeginDisabled(is3DMode);
+
     for (int i = 0; i < shapes.size(); ++i) {
         ImGui::PushID(i);
         bool isCurrentSelected = (selectedShapeIndex == i);
@@ -112,14 +159,16 @@ void ShapeEditorGUI::renderControlsPanel()
                 shapes[i]->position.x, shapes[i]->position.y);
 
         if (ImGui::Selectable(label_buffer, isCurrentSelected)) { // Use the buffer here
-            if (selectedShapeIndex != -1) {
-                shapes[selectedShapeIndex]->isSelected = false; // Deselect previous
+            if (!is3DMode) { // Only allow selection in 2D mode
+                if (selectedShapeIndex != -1) {
+                    shapes[selectedShapeIndex]->isSelected = false; // Deselect previous
+                }
+                selectedShapeIndex = i;
+                shapes[selectedShapeIndex]->isSelected = true; // Select new
             }
-            selectedShapeIndex = i;
-            shapes[selectedShapeIndex]->isSelected = true; // Select new
         }
 
-        if (isCurrentSelected) {
+        if (isCurrentSelected && !is3DMode) {
             ImGui::Indent();
             ImGui::Text("Properties:");
             ImGui::ColorEdit3("Color##Edit", shapes[i]->color.data()); // Convert to float* raw pointer for IMGUI
@@ -144,6 +193,8 @@ void ShapeEditorGUI::renderControlsPanel()
         }
         ImGui::PopID();
     }
+
+    ImGui::EndDisabled(); // End disable for 3D mode
     ImGui::EndChild();
 
     ImGui::Separator();
@@ -211,31 +262,170 @@ void ShapeEditorGUI::renderCanvasContextMenu(const bool& is_canvas_hovered)
     }
 }
 
+// New method to draw shapes with 3D effect:
+void ShapeEditorGUI::draw3DShapes(ImDrawList* draw_list, const ImVec2& canvas_pos) {
+    for (const auto& shape_ptr : shapes) {
+        // Calculate 3D transformation with both X and Y rotation
+        float cosX = cos(rotationAngleX);
+        float sinX = sin(rotationAngleX);
+        float cosY = cos(rotationAngleY);
+        float sinY = sin(rotationAngleY);
+
+        // Get shape center
+        ImVec2 shape_center = ImVec2(
+            canvas_pos.x + shape_ptr->position.x,
+            canvas_pos.y + shape_ptr->position.y
+        );
+
+        // Calculate combined 3D effect
+        // The Z-depth effect is simulated by scaling and positioning
+        float depthScale = 0.7f + 0.3f * (cosX * cosY);  // Combine both rotations for depth
+        float shadowOffsetX = 8.0f * sinY;  // Horizontal shadow from Y rotation
+        float shadowOffsetY = 6.0f * sinX;  // Vertical shadow from X rotation
+
+        // Draw shadow/depth effect (darker version offset based on both rotations)
+        ImU32 shadow_color = IM_COL32(
+            (int)(shape_ptr->color[0] * 80),
+            (int)(shape_ptr->color[1] * 80),
+            (int)(shape_ptr->color[2] * 80),
+            (int)(120 * depthScale)  // Shadow opacity varies with depth
+        );
+
+        if (auto* circle = dynamic_cast<Circle*>(shape_ptr.get())) {
+            // Draw shadow circle
+            draw_list->AddCircleFilled(
+                ImVec2(shape_center.x + shadowOffsetX, shape_center.y + shadowOffsetY),
+                circle->radius * depthScale * 0.9f,
+                shadow_color
+            );
+
+            // Draw main circle with 3D scaling
+            ImU32 main_color = IM_COL32(
+                (int)(shape_ptr->color[0] * 255),
+                (int)(shape_ptr->color[1] * 255),
+                (int)(shape_ptr->color[2] * 255),
+                255
+            );
+
+            draw_list->AddCircleFilled(
+                shape_center,
+                circle->radius * depthScale,
+                main_color
+            );
+
+            // Add dynamic highlight based on rotation
+            float highlightIntensity = 0.3f + 0.4f * (cosX + cosY) * 0.5f;
+            ImU32 highlight_color = IM_COL32(255, 255, 255, (int)(150 * highlightIntensity));
+
+            // Highlight position moves based on rotation
+            float highlightOffsetX = circle->radius * 0.3f * cosY;
+            float highlightOffsetY = circle->radius * 0.3f * cosX;
+
+            draw_list->AddCircleFilled(
+                ImVec2(shape_center.x - highlightOffsetX, shape_center.y - highlightOffsetY),
+                circle->radius * 0.15f * depthScale,
+                highlight_color
+            );
+        }
+        else if (auto* rect = dynamic_cast<Rectangle*>(shape_ptr.get())) {
+            // Calculate rotated rectangle corners with dual-axis rotation
+            float half_width = rect->size.x * 0.5f;
+            float half_height = rect->size.y * 0.5f;
+
+            // 3D perspective scaling
+            float scaleX = depthScale * (0.8f + 0.2f * cosY);
+            float scaleY = depthScale * (0.8f + 0.2f * cosX);
+
+            // Create rectangle corners
+            ImVec2 corners[4] = {
+                ImVec2(-half_width * scaleX, -half_height * scaleY),
+                ImVec2(half_width * scaleX, -half_height * scaleY),
+                ImVec2(half_width * scaleX, half_height * scaleY),
+                ImVec2(-half_width * scaleX, half_height * scaleY)
+            };
+
+            // Apply 3D rotation transformation
+            for (int i = 0; i < 4; i++) {
+                // First rotate around Y axis (left-right)
+                float tempX = corners[i].x * cosY - corners[i].y * sinY * 0.3f;  // Reduced Z-effect
+                float tempZ = corners[i].x * sinY + corners[i].y * cosY * 0.3f;
+
+                // Then rotate around X axis (up-down)
+                float finalY = corners[i].y * cosX - tempZ * sinX;
+
+                corners[i] = ImVec2(
+                    shape_center.x + tempX,
+                    shape_center.y + finalY
+                );
+            }
+
+            // Draw shadow
+            ImVec2 shadow_corners[4];
+            for (int i = 0; i < 4; i++) {
+                shadow_corners[i] = ImVec2(
+                    corners[i].x + shadowOffsetX,
+                    corners[i].y + shadowOffsetY
+                );
+            }
+            draw_list->AddConvexPolyFilled(shadow_corners, 4, shadow_color);
+
+            // Draw main rectangle
+            ImU32 main_color = IM_COL32(
+                (int)(shape_ptr->color[0] * 255),
+                (int)(shape_ptr->color[1] * 255),
+                (int)(shape_ptr->color[2] * 255),
+                255
+            );
+            draw_list->AddConvexPolyFilled(corners, 4, main_color);
+
+            // Add dynamic highlight
+            float highlightIntensity = 0.4f + 0.3f * (cosX + cosY) * 0.5f;
+            ImU32 highlight_color = IM_COL32(255, 255, 255, (int)(100 * highlightIntensity));
+
+            ImVec2 highlight_corners[4];
+            for (int i = 0; i < 4; i++) {
+                highlight_corners[i] = ImVec2(
+                    corners[i].x + (shape_center.x - corners[i].x) * 0.6f,
+                    corners[i].y + (shape_center.y - corners[i].y) * 0.6f
+                );
+            }
+            draw_list->AddConvexPolyFilled(highlight_corners, 4, highlight_color);
+        }
+    }
+}
+
+// Modified renderCanvasPanel() method:
 void ShapeEditorGUI::renderCanvasPanel() {
-        ImGui::Text("Drawing Canvas");
-        ImGui::Separator();
+    ImGui::Text("Drawing Canvas");
+    if (is3DMode) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "(3D Mode Active)");
+    }
+    ImGui::Separator();
 
-        // The canvas panel now occupies the full available space within its BeginChild container
-        ImVec2 canvas_pos = ImGui::GetCursorScreenPos(); // Top-left of the canvas area in screen coordinates
-        ImVec2 canvas_size = ImGui::GetContentRegionAvail(); // Available space for canvas
-        if (canvas_size.x < 50.0f) canvas_size.x = 50.0f;
-        if (canvas_size.y < 50.0f) canvas_size.y = 50.0f;
+    // The canvas panel now occupies the full available space within its BeginChild container
+    ImVec2 canvas_pos = ImGui::GetCursorScreenPos(); // Top-left of the canvas area in screen coordinates
+    ImVec2 canvas_size = ImGui::GetContentRegionAvail(); // Available space for canvas
+    if (canvas_size.x < 50.0f) canvas_size.x = 50.0f;
+    if (canvas_size.y < 50.0f) canvas_size.y = 50.0f;
 
-        // Draw a background for the canvas
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        draw_list->AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(50, 50, 50, 255));
-        draw_list->AddRect(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(255, 255, 255, 255)); // Border
+    // Draw a background for the canvas
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(50, 50, 50, 255));
+    draw_list->AddRect(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(255, 255, 255, 255)); // Border
 
-        // IMPORTANT: Invisible button to capture mouse input over the canvas
-        ImGui::InvisibleButton("Canvas", canvas_size);
-        bool is_canvas_hovered = ImGui::IsItemHovered();
-        bool is_canvas_active = ImGui::IsItemActive();   // Checks if the invisible button (canvas) is clicked/active
+    // IMPORTANT: Invisible button to capture mouse input over the canvas
+    ImGui::InvisibleButton("Canvas", canvas_size);
+    bool is_canvas_hovered = ImGui::IsItemHovered();
+    bool is_canvas_active = ImGui::IsItemActive();   // Checks if the invisible button (canvas) is clicked/active
 
-        // Mouse position relative to the ImGui window
-        ImVec2 mouse_pos_absolute = ImGui::GetIO().MousePos;
-        // Mouse position relative to the canvas's top-left corner
-        ImVec2 mouse_pos_in_canvas = ImVec2(mouse_pos_absolute.x - canvas_pos.x, mouse_pos_absolute.y - canvas_pos.y);
+    // Mouse position relative to the ImGui window
+    ImVec2 mouse_pos_absolute = ImGui::GetIO().MousePos;
+    // Mouse position relative to the canvas's top-left corner
+    ImVec2 mouse_pos_in_canvas = ImVec2(mouse_pos_absolute.x - canvas_pos.x, mouse_pos_absolute.y - canvas_pos.y);
 
+    // Only handle mouse interactions in 2D mode
+    if (!is3DMode) {
         // --- Cursor logic for shapes ---
         handleMouseShape(is_canvas_hovered, mouse_pos_in_canvas);
 
@@ -266,19 +456,30 @@ void ShapeEditorGUI::renderCanvasPanel() {
         }
 
         // Handle shape dragging
-        // Only drag if a shape is selected, the canvas is active (meaning the invisible button was clicked and held),
-        // AND the mouse is currently dragging.
-        // ImGui::IsItemActive() is crucial here: it will only be true if the "Canvas" invisible button is the active item
-        // (i.e., the mouse was pressed down over it). This prevents dragging when interacting with other widgets.
         if (selectedShapeIndex != -1 && is_canvas_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
             shapes[selectedShapeIndex]->clampPosition(canvas_size);
         }
+    } else {
+        // In 3D mode, deselect any selected shapes and show different cursor
+        if (selectedShapeIndex != -1) {
+            shapes[selectedShapeIndex]->isSelected = false;
+            selectedShapeIndex = -1;
+        }
 
-        // Draw all shapes
+        if (is_canvas_hovered) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_NotAllowed);
+        }
+    }
+
+    // Draw all shapes (with 3D effect if enabled)
+    if (is3DMode) {
+        draw3DShapes(draw_list, canvas_pos);
+    } else {
         for (const auto& shape_ptr : shapes) {
             shape_ptr->draw(draw_list, canvas_pos); // Pass canvas_pos for correct drawing
         }
     }
+}
 
 template<typename T, typename... Args>
 void ShapeEditorGUI::addShape(Args&&... args) {

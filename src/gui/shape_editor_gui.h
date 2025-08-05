@@ -26,9 +26,15 @@ private:
     std::array<float, 3> newShapeColor = {1.0f, 1.0f, 1.0f}; // RGB as floats (white by default)
     char newShapeNameBuffer[128] = ""; // For C-style string input
     bool showMenuBar = false;
+
     // Clipboard system
     ShapeClipboard clipboardSystem;
 
+    // For 3D model
+    bool is3DMode = false;
+    float rotationAngle = 0.0f;
+    float rotationAngleX = 0.0f;
+    float rotationAngleY = 0.0f;
 public:
     ShapeEditorGUI() {
         // Add some initial shapes (positions are canvas-relative now) to test shape code
@@ -71,6 +77,8 @@ private:
 
     // The function handle the logic for changing shape of cursor, when hover or dragging shape object
     void handleMouseShape(const bool& is_canvas_hovered, const ImVec2& mouse_pos_in_canvas);
+
+    void draw3DShapes(ImDrawList* draw_list, const ImVec2& canvas_pos);
 
     // TBD - For features to export and import a JSON contains all Shapes on the current canvas
     void importJson();
