@@ -83,7 +83,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run setup_dependencies.bat with SKIP_DEP_CHECK
-        run: call setup_dependencies.bat
+        shell: cmd
+        run: setup_dependencies.bat
+
+      - name: Create build directory
+        run: mkdir build
 
       - name: Configure with CMake
         run: cmake .. -DCMAKE_BUILD_TYPE=Release
