@@ -80,4 +80,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: shape_forge_binary_windows
-          path: bin/release/Release/
+          path: ./build/bin/release/Release/
