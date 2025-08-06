@@ -86,9 +86,6 @@ jobs:
         shell: cmd
         run: download_and_setup_dependencies.bat
 
-      - name: Create build directory
-        run: mkdir build
-
       - name: Configure with CMake
         run: cmake .. -DCMAKE_BUILD_TYPE=Release
         working-directory: build
