@@ -69,3 +69,32 @@ jobs:
           files: shape_forge_binary/release/shape-forge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows-vs2022:
+    name: Windows (VS2022)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    env:
+      CFLAGS: /WX
+      SKIP_DEP_CHECK: 1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run setup_dependencies.bat with SKIP_DEP_CHECK
+        run: call setup_dependencies.bat
+
+      - name: Configure with CMake
+        run: cmake .. -DCMAKE_BUILD_TYPE=Release
+        working-directory: build
+
+      - name: Build with CMake
+        run: cmake --build . --config Release
+        working-directory: build
+
+      - name: Upload Windows build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shape_forge_binary_windows
+          path: bin/release/Release/
