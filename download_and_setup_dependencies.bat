@@ -564,7 +564,7 @@ call :detect_platform
 
 REM Conditionally skip dependency check
 if "%SKIP_DEP_CHECK%"=="1" (
-    echo Skipping dependency check (SKIP_DEP_CHECK=1)...
+    call :print_success "Skipping dependency check (SKIP_DEP_CHECK=1)"
 ) else (
     call :check_and_install_dependencies
     if !errorlevel! neq 0 exit /b 1
