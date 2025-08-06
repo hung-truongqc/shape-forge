@@ -77,16 +77,13 @@ jobs:
     env:
       CFLAGS: /W3
       SKIP_DEP_CHECK: 1
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
       - name: Setup dependencies, configure and build
-        shell: cmd
-        run: |
-          download_and_setup_dependencies.bat
-          cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --config Release
+              shell: pwsh
+              run: |
+                cmd /c "download_and_setup_dependencies.bat"
+                cd build
+                cmake .. -DCMAKE_BUILD_TYPE=Release
+                cmake --build . --config Release
       - name: Upload Windows build artifacts
         uses: actions/upload-artifact@v4
         with:
