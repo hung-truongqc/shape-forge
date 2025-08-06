@@ -3,14 +3,14 @@
 
 #pragma once
 #include "shape.h"
-class Rectangle : public Shape {
+class RectangleShape : public Shape {
 public:
     ImVec2 size;
 
-    Rectangle(ImVec2 pos, ImVec2 s, const std::array<float, 3>& col, const std::string& n = "Rectangle")
+    RectangleShape(ImVec2 pos, ImVec2 s, const std::array<float, 3>& col, const std::string& n = "Rectangle")
         : Shape(pos, col, n), size(s) {}
 
-    // Override draw function for Rectangle
+    // Override draw function for RectangleShape
     void draw(ImDrawList* draw_list, ImVec2 canvas_origin_screen_pos) const override {
         // Calculate absolute screen positions for drawing
         ImVec2 p_min_screen = ImVec2(canvas_origin_screen_pos.x + position.x, canvas_origin_screen_pos.y + position.y);
@@ -28,7 +28,7 @@ public:
         }
     }
 
-    // Override contains function for Rectangle
+    // Override contains function for RectangleShape
     bool contains(ImVec2 point_in_canvas_coords) const override {
         return point_in_canvas_coords.x >= position.x && point_in_canvas_coords.x <= (position.x + size.x) &&
                point_in_canvas_coords.y >= position.y && point_in_canvas_coords.y <= (position.y + size.y);
@@ -46,6 +46,6 @@ public:
 
     //Override function for cloning
     std::unique_ptr<Shape> clone() const override {
-        return std::make_unique<Rectangle>(position, size, color, name);
+        return std::make_unique<RectangleShape>(position, size, color, name);
     }
 };

@@ -3,16 +3,10 @@
 // --- Main GUI Class for Shape Editor ---
 
 #pragma once
+#include "shape.h"
 #include "circle.h"
 #include "rectangle.h"
 #include "shape_clipboard.h"
-
-enum class MenuOperation {
-    CUT,
-    COPY,
-    PASTE,
-    DELETE
-};
 
 class ShapeEditorGUI {
 private:
@@ -33,9 +27,9 @@ public:
     ShapeEditorGUI() {
         // Add some initial shapes (positions are canvas-relative now) to test shape code
         const std::array<float, 3> green = {0.0f, 1.0f, 0.0f};
-        shapes.push_back(std::make_unique<Circle>(ImVec2(100, 100), 50.0f, green, "Green Circle"));
+        shapes.push_back(std::make_unique<CircleShape>(ImVec2(100, 100), 50.0f, green, "Green Circle"));
         const std::array<float, 3> blue = {0.0f, 0.0f, 1.0f};
-        shapes.push_back(std::make_unique<Rectangle>(ImVec2(200, 50), ImVec2(100, 70),blue, "Blue Rect"));
+        shapes.push_back(std::make_unique<RectangleShape>(ImVec2(200, 50), ImVec2(100, 70),blue, "Blue Rect"));
     }
     void render();
 

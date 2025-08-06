@@ -7,11 +7,7 @@
 #include <imgui_impl_opengl3.h>
 
 // Cross-platform OpenGL loader
-#ifdef _WIN32
-    #include <GL/glew.h>
-#else
-    #include <GL/gl3w.h>
-#endif
+#include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
 #include <vector>
@@ -19,6 +15,14 @@
 #include <cmath> // For M_PI if needed, or define it
 #include <memory> // For std::unique_ptr
 #include <cstdio> // For sprintf
+
+// Cross-platform OpenGL loader
+#ifdef _WIN32
+// For window build as MSVC is stricter than GCC or CLANG
+#include <array>
+#include <windows.h>
+#include <algorithm> 
+#endif
 
 // --- Base Shape Class ---
 // An abstract base class for all drawable shapes.

@@ -75,21 +75,21 @@ void ShapeEditorGUI::renderControlsPanel()
 
     ImGui::Separator();
 
-    // Circle creation
+    // CircleShape creation
     ImGui::Text("Circle Properties:");
     ImGui::SliderFloat("Radius", &newCircleRadius, 10.0f, 150.0f, "%.1f");
     // These buttons now add shapes at a default position if not clicked on canvas
     if (ImGui::Button("Add Circle", ImVec2(120, 0))) {
-        addShape<Circle>(ImVec2(100,100), newCircleRadius); // Default pos
+        addShape<CircleShape>(ImVec2(100,100), newCircleRadius); // Default pos
     }
 
     ImGui::Separator();
 
-    // Rectangle creation
+    // RectangleShape creation
     ImGui::Text("Rectangle Properties:");
     ImGui::SliderFloat2("Size", (float*)&newRectSize, 10.0f, 200.0f, "%.1f");
     if (ImGui::Button("Add Rectangle", ImVec2(120, 0))) {
-        addShape<Rectangle>(ImVec2(150,150), newRectSize); // Default pos
+        addShape<RectangleShape>(ImVec2(150,150), newRectSize); // Default pos
     }
 
     ImGui::Separator();
@@ -106,7 +106,7 @@ void ShapeEditorGUI::renderControlsPanel()
 
         // Using a char buffer and sprintf for string formatting
         char label_buffer[256]; // Sufficiently large buffer
-        const char* shape_type = (dynamic_cast<Circle*>(shapes[i].get()) ? "Circle" : "Rect");
+        const char* shape_type = (dynamic_cast<CircleShape*>(shapes[i].get()) ? "Circle" : "Rect");
         snprintf(label_buffer, sizeof(label_buffer),"%s (%s @ %.0f,%.0f)",
                 shapes[i]->name.c_str(), shape_type,
                 shapes[i]->position.x, shapes[i]->position.y);
@@ -125,12 +125,12 @@ void ShapeEditorGUI::renderControlsPanel()
             ImGui::ColorEdit3("Color##Edit", shapes[i]->color.data()); // Convert to float* raw pointer for IMGUI
             ImGui::InputFloat2("Position##Edit", (float*)&shapes[i]->position);
 
-            // Specific properties for Circle
-            if (auto* circle = dynamic_cast<Circle*>(shapes[i].get())) {
+            // Specific properties for CircleShape
+            if (auto* circle = dynamic_cast<CircleShape*>(shapes[i].get())) {
                 ImGui::SliderFloat("Radius##Edit", &circle->radius, 10.0f, 150.0f, "%.1f");
             }
-            // Specific properties for Rectangle
-            else if (auto* rect = dynamic_cast<Rectangle*>(shapes[i].get())) {
+            // Specific properties for RectangleShape
+            else if (auto* rect = dynamic_cast<RectangleShape*>(shapes[i].get())) {
                 ImGui::SliderFloat2("Size##Edit", (float*)&rect->size, 10.0f, 200.0f, "%.1f");
             }
 

@@ -56,6 +56,29 @@ if(${PLATFORM_NAME} STREQUAL "linux")
     )
     
     set(GLFW_LIBRARIES glfw3_static)
+elseif(${PLATFORM_NAME} STREQUAL "windows")
+    set(GLFW_STATIC_LIB ${CMAKE_SOURCE_DIR}/thirdparties/windows/glfw/build/src/release/glfw3.lib)
+    set(GLFW_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparties/windows/glfw/include)
+    
+    # Check if the static library exists
+    if(NOT EXISTS ${GLFW_STATIC_LIB})
+        message(FATAL_ERROR "GLFW static library not found at: ${GLFW_STATIC_LIB}")
+    endif()
+    
+    # Create imported target for GLFW
+    add_library(glfw3_static STATIC IMPORTED)
+    set_target_properties(glfw3_static PROPERTIES
+        IMPORTED_LOCATION ${GLFW_STATIC_LIB}
+        INTERFACE_INCLUDE_DIRECTORIES ${GLFW_INCLUDE_DIR}
+    )
+    
+    set(GLFW_LIBRARIES glfw3_static)
+
+    add_library(gl3w STATIC
+        thirdparties/windows/gl3w/src/gl3w.c
+    )
+    target_include_directories(gl3w PUBLIC thirdparties/windows/gl3w/include)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 else()
     # For other platforms, use find_package
     find_package(glfw3 REQUIRED)
@@ -63,11 +86,11 @@ else()
 endif()
 
 # Platform-specific OpenGL loader setup
-if(WIN32)
-    # Windows will use GLEW
+if(APPLE)
+    # APPLE to be done at latter date
     # TBD
 else()
-    # Linux/Mac uses gl3w
+    # Linux/ uses gl3w
     set(GL3W_DIR ${THIRDPARTY_DIR}/gl3w)
     set(OPENGL_LOADER_LIBS)
     set(OPENGL_LOADER_INCLUDE ${GL3W_DIR}/include)
@@ -84,11 +107,6 @@ set(IMGUI_SOURCES
     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
 )
-
-# Add gl3w source for Linux/Mac
-if(NOT WIN32)
-    list(APPEND IMGUI_SOURCES ${GL3W_DIR}/src/gl3w.c)
-endif()
 
 # Create main executable
 set(MAIN_SOURCES
@@ -132,6 +150,7 @@ if(WIN32)
         user32 
         gdi32 
         shell32
+        gl3w
     )
 else()
     target_link_libraries(${PROJECT_NAME} 
@@ -156,8 +175,9 @@ endif()
 if(BUILD_RELEASE)
     # Release build optimizations
     if(MSVC)
+        add_definitions(-DNOMINMAX) # Avoid conflict with Window own min/max
         # Experimental for Window build, currently has not been test on Window
-        target_compile_options(${PROJECT_NAME} PRIVATE /W4 /O2 /DNDEBUG)
+        target_compile_options(${PROJECT_NAME} PRIVATE /W4 /DNDEBUG)
         target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
     else()
         target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -DNDEBUG)
@@ -165,6 +185,7 @@ if(BUILD_RELEASE)
 else()
     # Debug build options
     if(MSVC)
+        add_definitions(-DNOMINMAX) # Avoid conflict with Window own min/max
         # Experimental for Window build, currently has not been test on Window
         target_compile_options(${PROJECT_NAME} PRIVATE /W4 /Od /Zi /DEBUG)
         target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS _DEBUG)

@@ -18,7 +18,13 @@ bool ShapeEditorApplication::initialize()
     // Create the GLFW window (initial size doesn't matter as ImGui will fill it)
     window = glfwCreateWindow(1000, 600, "ShapeForge", nullptr, nullptr);
     if (!window) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
+        const char* description;
+        int code = glfwGetError(&description);
+        std::cerr << "Failed to create GLFW window";
+        if (description) {
+            std::cerr << " (Error " << code << "): " << description;
+        }
+        std::cerr << std::endl;
         glfwTerminate();
         return false;
     }
@@ -26,7 +32,7 @@ bool ShapeEditorApplication::initialize()
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
 
-#ifdef _WIN32
+#ifdef __APPLE__
     // TBD
 #else
     if (gl3wInit() != 0) {
