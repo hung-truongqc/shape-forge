@@ -73,10 +73,6 @@ elseif(${PLATFORM_NAME} STREQUAL "windows")
     )
     
     set(GLFW_LIBRARIES glfw3_static)
-
-    add_library(gl3w STATIC
-        thirdparties/windows/gl3w/src/gl3w.c
-    )
     target_include_directories(gl3w PUBLIC thirdparties/windows/gl3w/include)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 else()
@@ -107,6 +103,10 @@ set(IMGUI_SOURCES
     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
 )
+# Add gl3w source for Window/Linux, Mac is not implement yet
+if(WIN32 OR UNIX)
+    list(APPEND IMGUI_SOURCES ${GL3W_DIR}/src/gl3w.c)
+endif()
 
 # Create main executable
 set(MAIN_SOURCES
