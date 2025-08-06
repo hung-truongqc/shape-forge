@@ -65,7 +65,7 @@ jobs:
 
 
   release:
-    needs: build
+    needs: [build, build-windows-vs2022]
     if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-nopublish')
     runs-on: ubuntu-latest
     steps:
