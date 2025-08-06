@@ -36,29 +36,10 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: shape_forge_binary
+          name: shape_forge_binary_linux
           path: ./build/bin
-  release:
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-nopublish')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: shape_forge_binary
-          path: shape_forge_binary  # <- this is where artifacts will be restored
-      - name: Upload GitHub Release with binary
-        uses: softprops/action-gh-release@v2
-        with:
-          name: ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
-          files: shape_forge_binary/release/shape-forge
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
   build-windows-vs2022:
     name: Windows (VS2022)
     runs-on: windows-latest
@@ -81,3 +62,36 @@ jobs:
         with:
           name: shape_forge_binary_windows
           path: ./build/bin/release/Release/
+
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-nopublish')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Linux build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: shape_forge_binary_linux
+          path: shape_forge_binary_linux  # <- this is where artifacts will be restored
+
+      - name: Download Windows build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: shape_forge_binary_windows
+          path: shape_forge_binary_windows
+
+      - name: Upload GitHub Release with binary
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
+          files: |
+            shape_forge_binary_linux/release/shape-forge
+            shape_forge_binary_windows/shape-forge.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
