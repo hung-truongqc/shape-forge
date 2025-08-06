@@ -82,9 +82,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run setup_dependencies.bat with SKIP_DEP_CHECK
+      - name: Run download_and_setup_dependencies.bat with SKIP_DEP_CHECK
         shell: cmd
-        run: setup_dependencies.bat
+        run: download_and_setup_dependencies.bat
 
       - name: Create build directory
         run: mkdir build
