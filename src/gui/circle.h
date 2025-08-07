@@ -3,14 +3,14 @@
 
 #pragma once
 #include "shape.h"
-class Circle : public Shape {
+class CircleShape : public Shape {
 public:
     float radius;
 
-    Circle(ImVec2 pos, float r, const std::array<float, 3>& col, const std::string& n = "Circle")
+    CircleShape(ImVec2 pos, float r, const std::array<float, 3>& col, const std::string& n = "Circle")
         : Shape(pos, col, n), radius(r) {}
 
-    // Override draw function for Circle
+    // Override draw function for CircleShape
     void draw(ImDrawList* draw_list, ImVec2 canvas_origin_screen_pos) const override {
         // Calculate absolute screen position for drawing
         ImVec2 screen_pos = ImVec2(canvas_origin_screen_pos.x + position.x, canvas_origin_screen_pos.y + position.y);
@@ -27,7 +27,7 @@ public:
         }
     }
 
-    // Override contains function for Circle
+    // Override contains function for CircleShape
     bool contains(ImVec2 point_in_canvas_coords) const override {
         float dx = point_in_canvas_coords.x - position.x;
         float dy = point_in_canvas_coords.y - position.y;
@@ -45,6 +45,6 @@ public:
     }
 
     std::unique_ptr<Shape> clone() const override {
-        return std::make_unique<Circle>(position, radius, color, name);
+        return std::make_unique<CircleShape>(position, radius, color, name);
     }
 };

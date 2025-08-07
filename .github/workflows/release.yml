@@ -1,31 +1,25 @@
 name: Build and Conditionally Release ShapeForge
-
 on:
   push:
     branches: ["**"]         # Build on all branches
     tags: ["v*"]             # Also trigger on tags like v1.0.0, v2.0.0-beta, v2.1.1-nopublish
   pull_request:              # Optional: build on PRs too
     branches: ["**"]
-
 # Allow for release write
 permissions:
   contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build inside Docker (with setup)
         run: |
           docker run --rm \
@@ -42,23 +36,53 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: shape_forge_binary
+          name: shape_forge_binary_linux
           path: ./build/bin
 
+
+  build-windows-vs2022:
+    name: Windows (VS2022)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    env:
+      CFLAGS: /W3
+      SKIP_DEP_CHECK: 1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup dependencies, configure and build
+        shell: pwsh
+        run: |
+          cmd /c "download_and_setup_dependencies.bat"
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
+      - name: Upload Windows build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shape_forge_binary_windows
+          path: ./build/bin/release/Release/
+
+
   release:
-    needs: build
+    needs: [build, build-windows-vs2022]
     if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-nopublish')
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download build artifacts
+      - name: Download Linux build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: shape_forge_binary
-          path: shape_forge_binary  # <- this is where artifacts will be restored
+          name: shape_forge_binary_linux
+          path: shape_forge_binary_linux  # <- this is where artifacts will be restored
+
+      - name: Download Windows build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: shape_forge_binary_windows
+          path: shape_forge_binary_windows
 
       - name: Upload GitHub Release with binary
         uses: softprops/action-gh-release@v2
@@ -66,6 +90,8 @@ jobs:
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
-          files: shape_forge_binary/release/shape-forge
+          files: |
+            shape_forge_binary_linux/release/shape-forge
+            shape_forge_binary_windows/shape-forge.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
