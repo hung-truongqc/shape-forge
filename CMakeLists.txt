@@ -228,7 +228,7 @@ if(BUILD_RELEASE)
     if(MSVC)
         add_definitions(-DNOMINMAX) # Avoid conflict with Window own min/max
         # Experimental for Window build, currently has not been test on Window
-        target_compile_options(${PROJECT_NAME} PRIVATE /W4 /DNDEBUG)
+        target_compile_options(${PROJECT_NAME} PRIVATE /utf-8 /W4 /DNDEBUG)
         target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
     else()
         target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -DNDEBUG)
@@ -238,7 +238,7 @@ else()
     if(MSVC)
         add_definitions(-DNOMINMAX) # Avoid conflict with Window own min/max
         # Experimental for Window build, currently has not been test on Window
-        target_compile_options(${PROJECT_NAME} PRIVATE /W4 /Od /Zi /DEBUG)
+        target_compile_options(${PROJECT_NAME} PRIVATE /utf-8 /W4 /Od /Zi /DEBUG)
         target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS _DEBUG)
     else()
         target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -g -O0 -D_DEBUG)
