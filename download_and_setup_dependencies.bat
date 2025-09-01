@@ -640,6 +640,9 @@ if !errorlevel! neq 0 exit /b 1
 call :setup_gl3w
 if !errorlevel! neq 0 exit /b 1
 
+call :setup_spd_log
+if !errorlevel! neq 0 exit /b 1
+
 echo.
 call :print_success "Dependency setup completed!"
 call :print_status "You can now build the project with:"

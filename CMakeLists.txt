@@ -106,7 +106,23 @@ if(${PLATFORM_NAME} STREQUAL "linux")
     
     set(SDP_LOG_LIBRARIES spd_log_static)
 elseif(${PLATFORM_NAME} STREQUAL "windows")
-    # TBD
+    # Set SPD_LOG
+    set(SPD_LOG_STATIC_LIB ${CMAKE_SOURCE_DIR}/thirdparties/windows/spd_log/build/src/release/spdlog.lib)
+    set(SPD_LOG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparties/windows/spd_log/include)
+    
+    # Check if the static library exists
+    if(NOT EXISTS ${SPD_LOG_STATIC_LIB})
+        message(FATAL_ERROR "SDP LOG static library not found at: ${SPD_LOG_STATIC_LIB}")
+    endif()
+    
+    # Create imported target for SPD
+    add_library(spd_log_static STATIC IMPORTED)
+    set_target_properties(spd_log_static PROPERTIES
+        IMPORTED_LOCATION ${SPD_LOG_STATIC_LIB}
+        INTERFACE_INCLUDE_DIRECTORIES ${SPD_LOG_INCLUDE_DIR}
+    )
+    
+    set(SDP_LOG_LIBRARIES spd_log_static)
 else()
     # For other platforms, use find_package
     # find_package(glfw3 REQUIRED)
