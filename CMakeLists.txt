@@ -107,7 +107,7 @@ if(${PLATFORM_NAME} STREQUAL "linux")
     set(SDP_LOG_LIBRARIES spd_log_static)
 elseif(${PLATFORM_NAME} STREQUAL "windows")
     # Set SPD_LOG
-    set(SPD_LOG_STATIC_LIB ${CMAKE_SOURCE_DIR}/thirdparties/windows/spd_log/build/src/Release/spdlog.lib)
+    set(SPD_LOG_STATIC_LIB ${CMAKE_SOURCE_DIR}/thirdparties/windows/spd_log/build/Release/spdlog.lib)
     set(SPD_LOG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparties/windows/spd_log/include)
     
     # Check if the static library exists
