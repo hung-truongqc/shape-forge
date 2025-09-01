@@ -1,6 +1,7 @@
 //========================================================================
 // Copyright (c) 2025 hung-truong
 
+#include "log/logger.h"
 #include "shape_editor_gui.h"
 void ShapeEditorGUI::render()
 {

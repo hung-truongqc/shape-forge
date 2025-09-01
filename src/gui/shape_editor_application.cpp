@@ -4,7 +4,8 @@
 #include "shape_editor_application.h"
 
 bool ShapeEditorApplication::initialize()
-{
+{   
+    logger_->info("ShapeEditorApplication is initialized!");
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return false;

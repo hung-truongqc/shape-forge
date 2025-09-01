@@ -84,6 +84,36 @@ else()
     set(GLFW_LIBRARIES glfw)
 endif()
 
+
+# SPD LOG setup - use static library
+if(${PLATFORM_NAME} STREQUAL "linux")
+
+    # Set SPD_LOG
+    set(SPD_LOG_STATIC_LIB ${CMAKE_SOURCE_DIR}/thirdparties/linux/spd_log/build/libspdlog.a)
+    set(SPD_LOG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparties/linux/spd_log/include)
+    
+    # Check if the static library exists
+    if(NOT EXISTS ${SPD_LOG_STATIC_LIB})
+        message(FATAL_ERROR "SDP LOG static library not found at: ${SPD_LOG_STATIC_LIB}")
+    endif()
+    
+    # Create imported target for SPD
+    add_library(spd_log_static STATIC IMPORTED)
+    set_target_properties(spd_log_static PROPERTIES
+        IMPORTED_LOCATION ${SPD_LOG_STATIC_LIB}
+        INTERFACE_INCLUDE_DIRECTORIES ${SPD_LOG_INCLUDE_DIR}
+    )
+    
+    set(SDP_LOG_LIBRARIES spd_log_static)
+elseif(${PLATFORM_NAME} STREQUAL "windows")
+    # TBD
+else()
+    # For other platforms, use find_package
+    # find_package(glfw3 REQUIRED)
+    # set(SDP_LOG_LIBRARIES glfw)
+endif()
+
+
 # Platform-specific OpenGL loader setup
 if(APPLE)
     # APPLE to be done at latter date
@@ -113,6 +143,7 @@ endif()
 
 # Create main executable
 set(MAIN_SOURCES
+    src/log/logger.cpp
     src/gui/shape_clipboard.cpp
     src/gui/shape_editor_application.cpp
     src/gui/shape_editor_gui.cpp
@@ -128,6 +159,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
     ${OPENGL_LOADER_INCLUDE}
+    ${SPD_LOG_INCLUDE_DIR}
 )
 
 # Add GLFW include directory for Linux
@@ -216,3 +248,5 @@ if(${PLATFORM_NAME} STREQUAL "linux")
     message(STATUS "  GLFW Include Directory: ${GLFW_INCLUDE_DIR}")
 endif()
 message(STATUS "  OpenGL Loader: ${OPENGL_LOADER_LIBS}")
+message(STATUS "  SDPLOG Loader: ${SPD_LOG_STATIC_LIB}")
+message(STATUS "  SDPLOG Loader: ${SPD_LOG_INCLUDE_DIR}")

@@ -45,7 +45,7 @@ detect_platform() {
 create_directories() {
     print_status "Creating directory structure..."
     
-    mkdir -p thirdparties/$PLATFORM/{imgui,glfw,gl3w}
+    mkdir -p thirdparties/$PLATFORM/{imgui,glfw,gl3w,spd_log}
     mkdir -p build
     mkdir -p src/imgui
     
@@ -140,13 +140,50 @@ setup_gl3w() {
         cd ..
         cp -r temp_gl3w/include .
         cp -r temp_gl3w/src .
-        rm -rf temp_gl3w
         
         print_success "GL3W generated and extracted"
     else
         print_warning "GL3W already exists, skipping generation"
     fi
-    
+
+    # Go back to thirdpaties level
+    cd ../../..
+}
+
+setup_glaze() {
+    print_status "Start glaze json download and setup"
+}
+
+setup_spdlog(){
+    print_status "Start spdlog download and setup..."
+    SPD_LOG_VERSION="1.15.3"
+    SPD_LOG_VERSION="https://github.com/gabime/spdlog/archive/refs/tags/v$SPD_LOG_VERSION.tar.gz"
+    cd thirdparties/$PLATFORM/spd_log
+
+    if [[ "$PLATFORM" == "linux" ]]; then
+        print_status "Downloading SPD_LOG $SPD_LOG_VERSION..."
+        curl -L "$SPD_LOG_VERSION" -o spd_log.tar.gz
+        tar -xzf spd_log.tar.gz --strip-components=1
+        rm spd_log.tar.gz
+        print_success "SPD_LOG downloaded and extracted"
+
+        # Check if Python is available
+        if command -v cmake &> /dev/null; then
+            print_status "Building SPD_LOG $SPD_LOG_VERSION..."
+            mkdir -p build
+            cmake -S . -B ./build
+            cmake --build ./build
+        else
+            print_error "Cmake is required to build sdp log, please ensure to run this script inside Docker container 'map_dev_env:latest'"
+            exit 1
+        fi
+
+
+    else
+        print_error "Unsupported platform: $OSTYPE"
+        exit 1
+    fi
+    cd - > /dev/null
 }
 
 # Main execution
@@ -163,7 +200,10 @@ main() {
     setup_imgui
     setup_glfw
     setup_gl3w
-    
+
+    # Setup glazed and spdlog
+    setup_glaze
+    setup_spdlog
     echo
     
     echo

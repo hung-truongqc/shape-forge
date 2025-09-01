@@ -3,6 +3,7 @@
 // --- Main GUI Class for Shape Editor ---
 
 #pragma once
+#include "log/interface_logger.h"
 #include "shape.h"
 #include "circle.h"
 #include "rectangle.h"
@@ -23,8 +24,14 @@ private:
     // Clipboard system
     ShapeClipboard clipboardSystem;
 
+    // logger
+    ILogger* logger_;
+
 public:
-    ShapeEditorGUI() {
+    explicit ShapeEditorGUI(ILogger* logger) 
+        : logger_(logger) 
+    {
+        logger_->info("ShapeEditorGUI is initialized");
         // Add some initial shapes (positions are canvas-relative now) to test shape code
         const std::array<float, 3> green = {0.0f, 1.0f, 0.0f};
         shapes.push_back(std::make_unique<CircleShape>(ImVec2(100, 100), 50.0f, green, "Green Circle"));

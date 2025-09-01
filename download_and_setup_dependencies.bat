@@ -381,6 +381,8 @@ for /d %%i in (thirdparties\*) do rmdir /s /q "%%i"
 if not exist "thirdparties\%PLAT%\imgui" mkdir "thirdparties\%PLAT%\imgui"
 if not exist "thirdparties\%PLAT%\glfw" mkdir "thirdparties\%PLAT%\glfw"
 if not exist "thirdparties\%PLAT%\gl3w" mkdir "thirdparties\%PLAT%\gl3w"
+if not exist "thirdparties\%PLAT%\spd_log" mkdir "thirdparties\%PLAT%\spd_log"
+
 if not exist "build" mkdir "build"
 if not exist "src\imgui" mkdir "src\imgui"
 
@@ -547,6 +549,61 @@ if not exist "src\gl3w.c" (
     call :print_success "GL3W generated and extracted"
 ) else (
     call :print_warning "GL3W already exists, skipping generation"
+)
+
+popd
+goto :eof
+
+:setup_spd_log
+call :print_status "Setting up SPD_LOG..."
+
+set "SPD_LOG_VERSION=3.4"
+set "SPD_URL=https://github.com/gabime/spdlog.git"
+pushd "thirdparties\%PLAT%\spd_log"
+
+if not exist "CMakeLists.txt" (
+    call :print_status "Downloading SPD %SPD_LOG_VERSION%..."
+    
+    git clone --branch %SPD_LOG_VERSION% --depth 1 "%SPD_URL%" temp_spd
+    if !errorlevel! neq 0 (
+        call :print_error "Failed to clone SPD repository"
+        popd
+        exit /b 1
+    )
+    
+    REM Move contents from temp folder to current directory
+    xcopy "temp_spd\*" "." /E /Y >nul
+    rmdir "temp_spd" /S /Q
+    
+    call :print_success "SPD downloaded and extracted"
+    
+    REM Check if CMake is available
+    cmake --version >nul 2>&1
+    if !errorlevel! neq 0 (
+        call :print_error "CMake is required to build SPD."
+        popd
+        exit /b 1
+    )
+    
+    call :print_status "Building SPD %SPD_VERSION%..."
+    if not exist "build" mkdir "build"
+    cmake -S . -B .\build -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>"
+    if !errorlevel! neq 0 (
+        call :print_error "CMake configuration failed"
+        popd
+        exit /b 1
+    )
+    
+    cmake --build .\build --config Release
+    if !errorlevel! neq 0 (
+        call :print_error "SPD build failed"
+        popd
+        exit /b 1
+    )
+    
+    call :print_success "SPD built successfully"
+) else (
+    call :print_warning "SPD already exists, skipping download"
 )
 
 popd
