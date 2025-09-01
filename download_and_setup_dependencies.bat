@@ -557,7 +557,7 @@ goto :eof
 :setup_spd_log
 call :print_status "Setting up SPD_LOG..."
 
-set "SPD_LOG_VERSION=3.4"
+set "SPD_LOG_VERSION=1.15.3"
 set "SPD_URL=https://github.com/gabime/spdlog.git"
 pushd "thirdparties\%PLAT%\spd_log"
 
